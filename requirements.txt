@@ -1,0 +1,10 @@
+streamlit>=1.30.0
+spacy>=3.7.0
+sentence-transformers>=2.3.0
+rdflib>=7.0.0
+
+
+pandas
+numpy
+plotly
+matplotlib

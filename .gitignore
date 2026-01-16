@@ -1,0 +1,16 @@
+# User notes
+note1
+note2
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Streamlit
+.streamlit/
+
+# OS
+.DS_Store
