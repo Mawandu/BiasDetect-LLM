@@ -180,7 +180,7 @@ class SymbolicLR(System):
     name = "P_sym"
 
     def fit(self, train, dev):
-        self.fz = SymbolicFeaturizer()
+        self.fz = SymbolicFeaturizer(seed=self.seed)
         self.clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000, C=1.0))
         self.clf.fit(self.fz.transform(train.text), train.label)
         return self

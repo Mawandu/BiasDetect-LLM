@@ -18,7 +18,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Action** : Ajouter les bibliothèques utilisées par `biasdetect/` et `experiments/` (`rdflib`, `scikit-learn`, `scipy`, `PyYAML`, `openai`, `datasets`, `tqdm`, `torch`, `transformers`) dans `requirements.txt`.
   - **Critère de réussite vérifiable** : Toutes les bibliothèques tierces importées dans `biasdetect/`, `modules/`, `experiments/` et `main.py` figurent dans `requirements.txt`, et `.venv/bin/python -m pytest -q` passe.
 
-- [ ] **Tâche 3 : Corriger la fuite de données (seed non transmise) dans `SymbolicLR.fit`**
+- [x] **Tâche 3 : Corriger la fuite de données (seed non transmise) dans `SymbolicLR.fit`**
   - **Fichiers** : `biasdetect/models/systems.py`
   - **Action** : Dans `SymbolicLR.fit` (`biasdetect/models/systems.py:182-186`), remplacer `self.fz = SymbolicFeaturizer()` par `self.fz = SymbolicFeaturizer(seed=self.seed)` (comme dans `HybridFusion.fit` à la ligne 239).
   - **Critère de réussite vérifiable** : Après appel à `sys = SymbolicLR(); sys.seed = 21` (avec `SymbolicFeaturizer` mocké), `SymbolicFeaturizer` est bien appelé avec `seed=21`.
