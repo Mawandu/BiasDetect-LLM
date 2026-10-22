@@ -16,5 +16,5 @@ venv/
 .DS_Store
 
 .venv/
-data/
-results/
+/data/
+/results/
