@@ -14,3 +14,7 @@ venv/
 
 # OS
 .DS_Store
+
+.venv/
+data/
+results/
