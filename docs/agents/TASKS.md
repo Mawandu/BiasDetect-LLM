@@ -75,7 +75,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Action** : Ajouter un test de biasdetect.eval.metrics.ece avec y=[0,0,0,1] et p=[0.15,0.15,0.15,0.85], valeur attendue 0.15 (pytest.approx). Ne pas modifier biasdetect/eval/metrics.py.
   - **Critere de reussite verifiable** : le test passe, et remplacer temporairement " * (idx == b).mean()" par " * 1" dans biasdetect/eval/metrics.py le fait echouer.
 
-- [ ] **Tâche 7a : tests de l'ontologie et du featurizer symbolique**
+- [x] **Tâche 7a : tests de l'ontologie et du featurizer symbolique**
   - **Fichiers** : tests/test_ontology.py (nouveau)
   - **Action** : Tester biasdetect/ontology/build.py (_uri, _hb_descriptors, stereo_attributes avec load_processed mocké) et biasdetect/features/symbolic.py (Ontology, SymbolicFeaturizer.analyze et transform) sur une mini-ontologie construite en mémoire ou dans tmp_path. Ne jamais lire ni écrire data/ontology/bias_s13.ttl. Rediriger ttl_path vers tmp_path avec monkeypatch.
   - **Critère de réussite vérifiable** : python -m pytest -q tests/test_ontology.py passe, ls data/ ne montre aucun fichier nouveau, et casser temporairement une règle dans SymbolicFeaturizer.analyze fait échouer un test.
