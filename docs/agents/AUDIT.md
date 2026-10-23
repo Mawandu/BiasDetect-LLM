@@ -178,4 +178,4 @@ Voici l'état pour chaque module de `biasdetect/` :
   - `biasdetect/features/neural.py:29` (`SentenceTransformer(ENCODERS[key])`) charge un modèle HuggingFace / SentenceTransformers.
   - `biasdetect/models/systems.py:90-91` (`AutoTokenizer.from_pretrained`, `AutoModelForSequenceClassification.from_pretrained`) et `:157, 161` (`LLMClient` -> API OpenAI/Groq/Gemini à `biasdetect/llm/client.py:68, 80`) chargent un modèle ou appellent une API externe.
 
-> Vérification humaine de A3 sur data/ontology/bias_s13.ttl : 0 terme à plusieurs catégories ; 3 éléments sur 778 ont plusieurs prov:wasDerivedFrom (source arbitraire dans l'explication). Impact sur les features numériques : non vérifié.
+> Vérification humaine de A3 sur data/ontology/bias_s13.ttl : 0 terme à plusieurs catégories ; 3 éléments sur 778 ont plusieurs prov:wasDerivedFrom (source arbitraire dans l'explication). Pôle, catégorie et preference cohérents (0 conflit) : aucun effet sur les features numériques ; seule la source affichée dans l'explication de effeminate, female et male peut varier.
