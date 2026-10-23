@@ -47,6 +47,8 @@ _FEATURES = {
     "d": [3.2, 0.1],
     "e": [3.1, 0.1],
     "f": [-0.1, 0.1],
+    "sym0": [0.0, 0.0],
+    "sym1": [1.0, 0.0],
 }
 
 
@@ -139,3 +141,28 @@ def test_hybrid_fusion_fit_score_explain(monkeypatch):
     assert explained["score"] > 0.5
     assert all(isinstance(v, float) for v in explained["contributions"].values())
     assert [r["rule"] for r in explained["rules"]] == ["dummy"]
+
+
+def test_majority_returns_non_trivial_prevalence():
+    train = pd.DataFrame({"text": ["a", "b", "c", "d"], "label": [1, 1, 1, 0]})
+    dev = pd.DataFrame({"text": ["e"], "label": [0]})
+    sys_obj = systems.Majority().fit(train, dev)
+    assert np.allclose(sys_obj.score(dev), [0.75])
+
+
+def test_hybrid_fusion_relies_on_symbolic_features(monkeypatch):
+    monkeypatch.setattr(neural, "embed", _fake_embed)
+    monkeypatch.setattr(systems, "SymbolicFeaturizer", DummyFeaturizer)
+
+    train = pd.DataFrame([
+        {"text": f"sym{i % 2}", "label": i % 2, "group_id": f"g{i}"}
+        for i in range(10)
+    ])
+    dev = pd.DataFrame({"text": ["sym0", "sym1"], "label": [0, 1]})
+
+    sys_obj = systems.HybridFusion(encs=["minilm"]).fit(train, dev)
+    scores = sys_obj.score(dev)
+    assert scores[0] < 0.5 < scores[1]
+
+    weights = sys_obj.branch_weights()
+    assert abs(weights["dummy_a"]) > 0.1
