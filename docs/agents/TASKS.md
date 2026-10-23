@@ -89,3 +89,8 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Fichiers** : tests/test_llm_annotation.py (nouveau)
   - **Action** : Tester biasdetect/llm/client.py (load_config, available_models, LLMClient.chat_json avec le client openai mocké, variable d'environnement factice via monkeypatch.setenv, et _load_dotenv mocké pour ne jamais lire .env) et biasdetect/annotation/export.py (sur tmp_path). Aucun appel à une API réelle.
   - **Critère de réussite vérifiable** : python -m pytest -q tests/test_llm_annotation.py passe, et grep -n "\.env" tests/test_llm_annotation.py ne montre que des mocks.
+
+- [ ] **Tâche 12 : rendre la source des termes multi-sources déterministe**
+  - **Fichiers** : biasdetect/features/symbolic.py, tests/test_ontology.py
+  - **Action** : Dans Ontology.__init__, quand un terme a plusieurs prov:wasDerivedFrom, choisir de façon déterministe (par exemple la plus petite source par ordre alphabétique) au lieu de g.value. Ne pas toucher à data/ontology/bias_s13.ttl. Ajouter un test sur une mini-ontologie en tmp_path avec un terme à deux sources.
+  - **Critere de reussite verifiable** : le test passe, et remplacer temporairement la sélection déterministe par g.value le fait échouer ou le rend instable.
