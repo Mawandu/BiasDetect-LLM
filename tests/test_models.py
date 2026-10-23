@@ -40,6 +40,10 @@ def _fake_embed(texts, key, **kwargs):
     return np.array(out, dtype=float)
 
 
+def _neutral_embed(texts, key, **kwargs):
+    return np.zeros((len(list(texts)), 2), dtype=float)
+
+
 _FEATURES = {
     "a": [0.0, 0.1],
     "b": [0.2, 0.1],
@@ -47,8 +51,6 @@ _FEATURES = {
     "d": [3.2, 0.1],
     "e": [3.1, 0.1],
     "f": [-0.1, 0.1],
-    "sym0": [0.0, 0.0],
-    "sym1": [1.0, 0.0],
 }
 
 
@@ -59,7 +61,16 @@ class DummyFeaturizer:
         self.seed = seed
 
     def transform(self, texts):
-        return np.array([_FEATURES.get(str(t), [0.0, 0.0]) for t in texts], dtype=float)
+        out = []
+        for text in texts:
+            text = str(text)
+            if text.startswith("pos"):
+                out.append([1.0, 0.0])
+            elif text.startswith("neg"):
+                out.append([0.0, 0.0])
+            else:
+                out.append(_FEATURES.get(text, [0.0, 0.0]))
+        return np.array(out, dtype=float)
 
     def analyze(self, text):
         return SymbolicResult({}, [Rule("dummy", str(text), "fake rule", "S1")])
@@ -151,14 +162,14 @@ def test_majority_returns_non_trivial_prevalence():
 
 
 def test_hybrid_fusion_relies_on_symbolic_features(monkeypatch):
-    monkeypatch.setattr(neural, "embed", _fake_embed)
+    monkeypatch.setattr(neural, "embed", _neutral_embed)
     monkeypatch.setattr(systems, "SymbolicFeaturizer", DummyFeaturizer)
 
     train = pd.DataFrame([
-        {"text": f"sym{i % 2}", "label": i % 2, "group_id": f"g{i}"}
+        {"text": ("pos" if i % 2 else "neg") + str(i), "label": i % 2, "group_id": f"g{i}"}
         for i in range(10)
     ])
-    dev = pd.DataFrame({"text": ["sym0", "sym1"], "label": [0, 1]})
+    dev = pd.DataFrame({"text": ["neg20", "pos20"], "label": [0, 1]})
 
     sys_obj = systems.HybridFusion(encs=["minilm"]).fit(train, dev)
     scores = sys_obj.score(dev)
