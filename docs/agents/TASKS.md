@@ -64,3 +64,8 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Fichiers** : README.md, requirements.txt, requirements-dev.txt
   - **Action** : Ajouter au README une section expliquant requirements-train.txt (entraînement, Colab) ; déplacer pytest dans requirements-dev.txt. Aucun pip install.
   - **Critère de réussite vérifiable** : grep -n "requirements-train" README.md affiche au moins une ligne et pytest n apparait plus dans requirements.txt.
+
+- [ ] **Tâche 10 : tester le score de LinguisticAnalyzer sur un biais intermédiaire**
+  - **Fichiers** : tests/test_modules.py
+  - **Action** : Ajouter un test avec un faux SentenceTransformer dont les vecteurs donnent un raw_diff connu (par exemple 0.05 puis 0.1) et verifier le score avec pytest.approx (environ 46 et 76, selon le commentaire de modules/linguistic.py). Ne pas modifier modules/linguistic.py. Aucun reseau, aucun chargement de modele.
+  - **Critere de reussite verifiable** : le test passe, et remplacer temporairement "* 10" par "* 20" dans modules/linguistic.py le fait echouer.
