@@ -59,3 +59,8 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
     1. Mettre à jour `architecture.md` et `README.md` pour refléter fidèlement l'architecture du dépôt : distinguer le démonstrateur Streamlit (`main.py` + `modules/`) et le pipeline expérimental hybride (`biasdetect/` + `experiments/`).
     2. Retirer ou qualifier clairement les éléments non implémentés (analyse stylométrique, score de toxicité, surlignage token par token dans le texte) et documenter les composants réellement implémentés (ontologie RDF/Turtle `S1`–`S4` avec provenance `prov:wasDerivedFrom`, `SymbolicFeaturizer`, sonde logistique `NeuralProbe`, fusion par stacking `HybridFusion` avec `GroupKFold`, et évaluation sur StereoSet, CrowS-Pairs et SBIC).
   - **Critère de réussite vérifiable** : Aucune composante absente du code n'est présentée comme implémentée dans `architecture.md` ou `README.md`.
+
+- [ ] **Tâche 9 : documenter requirements-train.txt et séparer pytest**
+  - **Fichiers** : README.md, requirements.txt, requirements-dev.txt
+  - **Action** : Ajouter au README une section expliquant requirements-train.txt (entraînement, Colab) ; déplacer pytest dans requirements-dev.txt. Aucun pip install.
+  - **Critère de réussite vérifiable** : grep -n "requirements-train" README.md affiche au moins une ligne et pytest n apparait plus dans requirements.txt.
