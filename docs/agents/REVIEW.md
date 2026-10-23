@@ -107,3 +107,74 @@ Aucun problème détecté.
 ```
 
 Aucun problème détecté.
+
+---
+
+# Revue de Code — Tâche 4 (`9204994..HEAD`)
+
+**Statut : OK**
+
+## 1. Vérification du diff et du critère
+- **`biasdetect/annotation/agreement.py:8`** : la docstring documente désormais `data/bold/gold.csv` (alignée sur le chemin réel).
+- **`biasdetect/annotation/agreement.py:64-66`** : `out_path = ROOT / "data" / "bold" / "gold.csv"` est précédé de `out_path.parent.mkdir(parents=True, exist_ok=True)` avant `out.to_csv(out_path)`.
+- **`tests/test_biasdetect.py:71-99` (`test_agreement_resolve_creates_parent_and_writes_gold_in_tmp_path`)** :
+  - Redirige `agreement.ROOT` et `agreement.ANN` vers `tmp_path` (`tests/test_biasdetect.py:87-88`) : aucune écriture dans `/data/`, aucun accès réseau, aucun chargement de modèle.
+  - Vérifie que `tmp_path / "data" / "bold" / "gold.csv"` et son dossier parent sont créés et contiennent les 2 lignes attendues (`[0, 1]`).
+  - Sans `out_path.parent.mkdir(parents=True, exist_ok=True)` (`biasdetect/annotation/agreement.py:65`), `out.to_csv(out_path)` échoue avec `OSError` car `tmp_path / "data" / "bold"` n'existe pas avant l'appel.
+- **`docs/agents/TASKS.md:26`** : la Tâche 4 est marquée `[x]`.
+
+---
+
+# Revue de Code — Tâche 6 (`9204994..HEAD`)
+
+**Statut : OK**
+
+## 1. Vérification du diff et des critères
+- **`tests/test_biasdetect.py:103-214`** :
+  - Couvre toutes les fonctions de `biasdetect/eval/metrics.py` : `best_threshold` (`:103-108`), `ece` (`:111-113`), `metrics` (`:122-140`, cas parfait, `NaN`, classe unique, scores hors `[0, 1]`), `pairwise_accuracy` (`:143-149`), `bootstrap_ci` (`:152-158`) et `mcnemar` (`:161-166`).
+  - Couvre `_sbic_category` (`:171-181`, 7 cas paramétrés) et `group_split` (`:184-214`, déterminisme, stratification par catégorie et disjonction stricte des `group_id` entre `train`, `dev` et `test`).
+  - Aucun test n'écrit dans `data/`, ne fait d'accès réseau ni ne charge de modèle. Tous les appels de `tests/test_biasdetect.py` s'exécutent en moins de 2 secondes (le plus lent est `test_best_threshold_separates_perfectly` en `0.86s`).
+- **`docs/agents/TASKS.md:40`** : la Tâche 6 est marquée `[x]`.
+
+## 2. Recalcul manuel des valeurs attendues
+- **`pairwise_accuracy` (`tests/test_biasdetect.py:143-149`, `biasdetect/eval/metrics.py:38-44`)** :
+  - 3 paires `group_id` $\in \{\text{"a"}, \text{"b"}, \text{"c"}\}$ avec `label` $\in \{0, 1\}$ et scores `s = [0.2, 0.8, 0.5, 0.5, 0.9, 0.1]` :
+    - Paire `"a"` : $s_1 = 0.8 > s_0 = 0.2 \implies 1.0$
+    - Paire `"b"` : $s_1 = 0.5 = s_0 = 0.5$ (ex-aequo compté $0.5$) $\implies 0.5$
+    - Paire `"c"` : $s_1 = 0.1 < s_0 = 0.9 \implies 0.0$
+  - Moyenne sur les 3 paires : $\frac{1.0 + 0.5 + 0.0}{3} = \frac{1.5}{3} = 0.5$, conforme à `pytest.approx(0.5)` (`tests/test_biasdetect.py:149`).
+- **`mcnemar` (`tests/test_biasdetect.py:161-166`, `biasdetect/eval/metrics.py:58-62`)** :
+  - `y = [0, 0, 0, 0]`, `same = [0, 0, 0, 0]`, `wrong = [1, 1, 1, 1]`.
+  - Cas identique (`mcnemar(y, same, same)`) : $b = 0, c = 0 \implies b + c = 0 \implies 1.0$ (`tests/test_biasdetect.py:165`).
+  - Cas discordant (`mcnemar(y, same, wrong)`) : `a_ok = [T, T, T, T]`, `b_ok = [F, F, F, F]`, d'où $b = 4$ et $c = 0$ ($b + c = 4$). Sous $\mathcal{B}(4, 0.5)$, la p-valeur bilatérale exacte vaut $P(X = 0) + P(X = 4) = (0.5)^4 + (0.5)^4 = 0.0625 + 0.0625 = 0.125$, conforme à `pytest.approx(0.125)` (`tests/test_biasdetect.py:166`).
+
+---
+
+# Revue de Code — Tâche 11 (`9204994..HEAD`)
+
+**Statut : OK**
+
+## 1. Vérification du diff et recalcul manuel de `ece`
+- **`biasdetect/eval/metrics.py`** : non modifié.
+- **`tests/test_biasdetect.py:116-120` (`test_ece_weights_bins_by_frequency`)** :
+  - Entrées : `y = np.array([0, 0, 0, 1])`, `p = np.array([0.15, 0.15, 0.15, 0.85])`, `bins = 10` (tranches de largeur $0.1$).
+  - Recalcul manuel :
+    - Tranche $b = 1$ ($[0.1, 0.2)$) : contient 3 exemples avec $y = [0, 0, 0]$ et $p = [0.15, 0.15, 0.15]$. Fréquence $= \frac{3}{4} = 0.75$, écart $|\bar{y}_1 - \bar{p}_1| = |0.0 - 0.15| = 0.15$, contribution $= 0.15 \times \frac{3}{4} = 0.1125$.
+    - Tranche $b = 8$ ($[0.8, 0.9)$) : contient 1 exemple avec $y = [1]$ et $p = [0.85]$. Fréquence $= \frac{1}{4} = 0.25$, écart $|\bar{y}_8 - \bar{p}_8| = |1.0 - 0.85| = 0.15$, contribution $= 0.15 \times \frac{1}{4} = 0.0375$.
+    - Somme pondérée : $\text{ECE} = 0.1125 + 0.0375 = 0.15$, conforme à `pytest.approx(0.15)` (`tests/test_biasdetect.py:119`).
+  - Si `* (idx == b).mean()` était remplacé par `* 1` dans `biasdetect/eval/metrics.py:20`, la somme sur les deux tranches non vides vaudrait $0.15 + 0.15 = 0.30 \neq 0.15$, faisant échouer le test.
+- **`docs/agents/TASKS.md:73`** : la Tâche 11 est marquée `[x]`.
+
+## 2. Résultat des tests (`python -m pytest -q --durations=5`)
+```text
+.................................                                        [100%]
+============================= slowest 5 durations ==============================
+5.55s setup    tests/test_modules.py::test_symbolic_single_word
+0.86s call     tests/test_biasdetect.py::test_best_threshold_separates_perfectly
+0.37s call     tests/test_biasdetect.py::test_bootstrap_ci_deterministic_on_perfect_scores
+0.20s call     tests/test_biasdetect.py::test_symbolic_lr_passes_seed_to_featurizer
+0.19s call     tests/test_biasdetect.py::test_agreement_resolve_creates_parent_and_writes_gold_in_tmp_path
+33 passed in 45.54s
+```
+
+Aucun problème détecté.
