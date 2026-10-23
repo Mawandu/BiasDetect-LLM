@@ -93,4 +93,4 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
 - [ ] **Tâche 12 : rendre la source des termes multi-sources déterministe**
   - **Fichiers** : biasdetect/features/symbolic.py, tests/test_ontology.py
   - **Action** : Dans Ontology.__init__, quand un terme a plusieurs prov:wasDerivedFrom, choisir de façon déterministe (par exemple la plus petite source par ordre alphabétique) au lieu de g.value. Ne pas toucher à data/ontology/bias_s13.ttl. Ajouter un test sur une mini-ontologie en tmp_path avec un terme à deux sources.
-  - **Critere de reussite verifiable** : le test passe, et remplacer temporairement la sélection déterministe par g.value le fait échouer ou le rend instable.
+  - **Critere de reussite verifiable** : le test construit la mini-ontologie en ajoutant la source S2 avant S1 et exige source == S1 (plus petit identifiant par ordre alphabétique) ; il passe, et remplacer temporairement la sélection par g.value le fait échouer.
