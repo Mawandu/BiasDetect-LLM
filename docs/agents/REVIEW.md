@@ -215,3 +215,40 @@ Aucun problème détecté.
 ```
 
 Aucun problème détecté.
+
+---
+
+# Revue de Code — Tâche 7b (`10ecbef..HEAD`)
+
+**Statut : OK**
+
+## 1. Vérification du diff et des critères
+- **`tests/test_models.py:1-141` (nouveau fichier)** :
+  - Redirige `neural.CACHE` vers `tmp_path / "cache"` et `neural._get_model` vers `FakeEncoder` (`tests/test_models.py:68-90`) ; remplace `neural.embed` par `_fake_embed` et `systems.SymbolicFeaturizer` par `DummyFeaturizer` (`tests/test_models.py:101-141`).
+  - Aucun test ne lit ni n'écrit dans `data/` (ni `data/cache`, ni `data/ontology`), aucun accès réseau n'est effectué, et aucun modèle (`SentenceTransformer`, `torch`, `transformers`) n'est chargé.
+  - Durée d'exécution hors import très inférieure à 5 secondes (le test le plus lent de `tests/test_models.py` est `test_hybrid_fusion_fit_score_explain` en `0.25s`).
+  - Casser `Majority` (`biasdetect/models/systems.py:36-45`) fait échouer `test_majority_returns_train_prevalence` (`tests/test_models.py:94-98`), et casser `HybridFusion.fit`, `score` ou `explain` (`biasdetect/models/systems.py:238-267`) fait échouer `test_hybrid_fusion_fit_score_explain` (`tests/test_models.py:122-141`).
+- **`docs/agents/TASKS.md:83`** : la Tâche 7b est marquée `[x]` (et la Tâche 12 a été ajoutée à `docs/agents/TASKS.md:93-96` suite à la vérification de A3 dans `docs/agents/AUDIT.md:181`).
+
+## 2. Recalcul manuel des valeurs attendues
+- **`Majority.score` (`tests/test_models.py:94-98`, `biasdetect/models/systems.py:39-44`)** :
+  - Sur `train.label = [0, 0, 1, 1]`, la prévalence apprise vaut $\text{self.p} = \frac{0 + 0 + 1 + 1}{4} = 0.5$. Sur `dev` de taille $1$, `np.full(1, 0.5)` retourne `[0.5]`, conforme à `np.allclose(sys_obj.score(dev), [0.5])` (`tests/test_models.py:98`).
+- **`FakeEncoder` et `neural.embed` (`tests/test_models.py:16-28, 68-90`, `biasdetect/features/neural.py:19-43`)** :
+  - Pour `neural.embed(["alpha", "ab"], "minilm")`, le préfixe est `""` et `FakeEncoder.encode` renvoie $[\text{len}(t), t.\text{count}(\text{"a"}), i+1]$ : $[5.0, 2.0, 1.0]$ pour `"alpha"` ($i=0$) et $[2.0, 1.0, 2.0]$ pour `"ab"` ($i=1$), soit une matrice de forme `(2, 3)` (`tests/test_models.py:74`) mise en cache dans `tmp_path / "cache" / "minilm_*.npy"`. Le second appel relit ce fichier sans rappeler `encode` (`len(encoder.calls) == 1` à `:80`).
+  - Pour `neural.embed(["hello"], "e5")`, `PREFIX["e5"] = "query: "` (`biasdetect/features/neural.py:20`) préfixe l'entrée en `["query: hello"]`, conforme à `encoder.calls == [["query: hello"]]` (`tests/test_models.py:89`).
+- **Séparation linéaire dans `test_symbolic_lr_fit_score` et `test_hybrid_fusion_fit_score_explain` (`tests/test_models.py:113-141`)** :
+  - Dans `test_symbolic_lr_fit_score` (`:113-120`), la 1ʳᵉ feature de `train` vaut $\{0.0, 0.2\}$ pour $y=0$ et $\{3.0, 3.2\}$ pour $y=1$ (moyenne $\mu = 1.6$, symétrique) tandis que la 2ᵉ est constante ($0.1 \implies z_2 = 0$). Le classifieur logistique apprend donc un poids $w_1 > 0$ et un biais nul : pour `"f"` ($x_1 = -0.1 < 1.6$), $P(y=1) < 0.5$, et pour `"e"` ($x_1 = 3.1 > 1.6$), $P(y=1) > 0.5$, d'où `scores[0] < 0.5 < scores[1]` (`:119`). De même dans `test_hybrid_fusion_fit_score_explain` (`:122-141`), les exemples `"neg*"` ont l'embedding $[-2.0, 0.1]$ ($y=0$) et `"pos*"` ont $[2.0, -0.1]$ ($y=1$), d'où `scores[0] < 0.5 < scores[1]` et `explained["score"] > 0.5` pour `"pos9"`.
+
+## 3. Résultat des tests (`python -m pytest -q --durations=5`)
+```text
+..............................................                           [100%]
+============================= slowest 5 durations ==============================
+5.74s setup    tests/test_modules.py::test_symbolic_single_word
+0.88s call     tests/test_biasdetect.py::test_best_threshold_separates_perfectly
+0.40s call     tests/test_biasdetect.py::test_bootstrap_ci_deterministic_on_perfect_scores
+0.25s call     tests/test_models.py::test_hybrid_fusion_fit_score_explain
+0.20s call     tests/test_biasdetect.py::test_agreement_resolve_creates_parent_and_writes_gold_in_tmp_path
+46 passed in 43.11s
+```
+
+Aucun problème détecté.
