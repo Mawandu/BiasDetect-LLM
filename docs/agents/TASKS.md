@@ -85,7 +85,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Action** : Tester biasdetect/features/neural.py (embed avec _get_model et CACHE redirigés vers tmp_path) et biasdetect/models/systems.py (Majority, SymbolicLR, NeuralProbe, HybridFusion.fit/score/explain) sur de petites données synthétiques, avec embeddings et ontologie mockés. Ne pas tester ZeroShotNLI, FineTuned ni LLMJudge (modèles lourds ou réseau).
   - **Critère de réussite vérifiable** : python -m pytest -q tests/test_models.py passe sans accès réseau ni chargement de modèle, et durée du fichier inférieure à 5 secondes hors import.
 
-- [ ] **Tâche 7c : tests du client LLM et de l'export d'annotation**
+- [x] **Tâche 7c : tests du client LLM et de l'export d'annotation**
   - **Fichiers** : tests/test_llm_annotation.py (nouveau)
   - **Action** : Tester biasdetect/llm/client.py (load_config, available_models, LLMClient.chat_json avec le client openai mocké, variable d'environnement factice via monkeypatch.setenv, et _load_dotenv mocké pour ne jamais lire .env) et biasdetect/annotation/export.py (sur tmp_path). Aucun appel à une API réelle.
   - **Critère de réussite vérifiable** : python -m pytest -q tests/test_llm_annotation.py passe, et grep -n "\.env" tests/test_llm_annotation.py ne montre que des mocks.
