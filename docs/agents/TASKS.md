@@ -44,7 +44,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
     2. Tester `group_split` et `_sbic_category` de `biasdetect/data/loaders.py` sur un `DataFrame` synthétique en vérifiant l'absence de fuite de `group_id` entre `train`, `dev` et `test` (`set(train.group_id).isdisjoint(set(test.group_id))`).
   - **Critère de réussite vérifiable** : `.venv/bin/python -m pytest -q tests/test_biasdetect.py` passe en moins de 2 secondes sans accès réseau ni écriture dans `data/`.
 
-- [ ] **Tâche 7 : Ajouter des tests unitaires (avec mocks/fixtures locales) pour `biasdetect/ontology/build.py`, `biasdetect/features/symbolic.py`, `biasdetect/features/neural.py`, `biasdetect/models/systems.py`, `biasdetect/llm/client.py` et `biasdetect/annotation/`**
+- [x] **Tâche 7 (REMPLACÉE par 7a, 7b, 7c : ne pas exécuter) : Ajouter des tests unitaires (avec mocks/fixtures locales) pour `biasdetect/ontology/build.py`, `biasdetect/features/symbolic.py`, `biasdetect/features/neural.py`, `biasdetect/models/systems.py`, `biasdetect/llm/client.py` et `biasdetect/annotation/`**
   - **Fichiers** : `tests/test_biasdetect.py`
   - **Action** :
     1. Tester `biasdetect/ontology/build.py` (`_uri`, `_hb_descriptors`, `stereo_attributes` avec `load_processed` mocké) et `biasdetect/features/symbolic.py` (`SymbolicFeaturizer.analyze` et `transform` sur une mini-ontologie en mémoire ou `tmp_path`).
@@ -74,3 +74,18 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Fichiers** : tests/test_biasdetect.py
   - **Action** : Ajouter un test de biasdetect.eval.metrics.ece avec y=[0,0,0,1] et p=[0.15,0.15,0.15,0.85], valeur attendue 0.15 (pytest.approx). Ne pas modifier biasdetect/eval/metrics.py.
   - **Critere de reussite verifiable** : le test passe, et remplacer temporairement " * (idx == b).mean()" par " * 1" dans biasdetect/eval/metrics.py le fait echouer.
+
+- [ ] **Tâche 7a : tests de l'ontologie et du featurizer symbolique**
+  - **Fichiers** : tests/test_ontology.py (nouveau)
+  - **Action** : Tester biasdetect/ontology/build.py (_uri, _hb_descriptors, stereo_attributes avec load_processed mocké) et biasdetect/features/symbolic.py (Ontology, SymbolicFeaturizer.analyze et transform) sur une mini-ontologie construite en mémoire ou dans tmp_path. Ne jamais lire ni écrire data/ontology/bias_s13.ttl. Rediriger ttl_path vers tmp_path avec monkeypatch.
+  - **Critère de réussite vérifiable** : python -m pytest -q tests/test_ontology.py passe, ls data/ ne montre aucun fichier nouveau, et casser temporairement une règle dans SymbolicFeaturizer.analyze fait échouer un test.
+
+- [ ] **Tâche 7b : tests des features neuronales et des modèles**
+  - **Fichiers** : tests/test_models.py (nouveau)
+  - **Action** : Tester biasdetect/features/neural.py (embed avec _get_model et CACHE redirigés vers tmp_path) et biasdetect/models/systems.py (Majority, SymbolicLR, NeuralProbe, HybridFusion.fit/score/explain) sur de petites données synthétiques, avec embeddings et ontologie mockés. Ne pas tester ZeroShotNLI, FineTuned ni LLMJudge (modèles lourds ou réseau).
+  - **Critère de réussite vérifiable** : python -m pytest -q tests/test_models.py passe sans accès réseau ni chargement de modèle, et durée du fichier inférieure à 5 secondes hors import.
+
+- [ ] **Tâche 7c : tests du client LLM et de l'export d'annotation**
+  - **Fichiers** : tests/test_llm_annotation.py (nouveau)
+  - **Action** : Tester biasdetect/llm/client.py (load_config, available_models, LLMClient.chat_json avec le client openai mocké, variable d'environnement factice via monkeypatch.setenv, et _load_dotenv mocké pour ne jamais lire .env) et biasdetect/annotation/export.py (sur tmp_path). Aucun appel à une API réelle.
+  - **Critère de réussite vérifiable** : python -m pytest -q tests/test_llm_annotation.py passe, et grep -n "\.env" tests/test_llm_annotation.py ne montre que des mocks.
