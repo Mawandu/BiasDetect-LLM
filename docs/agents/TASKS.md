@@ -80,7 +80,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Action** : Tester biasdetect/ontology/build.py (_uri, _hb_descriptors, stereo_attributes avec load_processed mocké) et biasdetect/features/symbolic.py (Ontology, SymbolicFeaturizer.analyze et transform) sur une mini-ontologie construite en mémoire ou dans tmp_path. Ne jamais lire ni écrire data/ontology/bias_s13.ttl. Rediriger ttl_path vers tmp_path avec monkeypatch.
   - **Critère de réussite vérifiable** : python -m pytest -q tests/test_ontology.py passe, ls data/ ne montre aucun fichier nouveau, et casser temporairement une règle dans SymbolicFeaturizer.analyze fait échouer un test.
 
-- [ ] **Tâche 7b : tests des features neuronales et des modèles**
+- [x] **Tâche 7b : tests des features neuronales et des modèles**
   - **Fichiers** : tests/test_models.py (nouveau)
   - **Action** : Tester biasdetect/features/neural.py (embed avec _get_model et CACHE redirigés vers tmp_path) et biasdetect/models/systems.py (Majority, SymbolicLR, NeuralProbe, HybridFusion.fit/score/explain) sur de petites données synthétiques, avec embeddings et ontologie mockés. Ne pas tester ZeroShotNLI, FineTuned ni LLMJudge (modèles lourds ou réseau).
   - **Critère de réussite vérifiable** : python -m pytest -q tests/test_models.py passe sans accès réseau ni chargement de modèle, et durée du fichier inférieure à 5 secondes hors import.
