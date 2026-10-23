@@ -85,3 +85,25 @@ Aucun problème détecté.
 ```
 
 Aucun problème détecté.
+
+---
+
+# Revue de Code — Tâche 10 (`f0e8119..c70ff2d`)
+
+**Statut : OK**
+
+## 1. Vérification du diff (`git diff f0e8119..c70ff2d`)
+- **`modules/linguistic.py`** : non modifié.
+- **`tests/test_modules.py:129-168`** :
+  - Ajout de `ControlledSentenceTransformer` (`tests/test_modules.py:129-143`), de `_unit_vector_with_diff(diff)` (`tests/test_modules.py:146-148`, qui construit un vecteur unitaire 2D `[x, x - diff]` de sorte que `male_sim - female_sim == diff`) et de la fixture `controlled_analyzer` (`tests/test_modules.py:151-160`).
+  - Ajout du test paramétré `test_linguistic_intermediate_score` (`tests/test_modules.py:163-168`) vérifiant `raw_diff` (`0.05` et `0.1`), `score` avec `pytest.approx` sur les valeurs numériques attendues (`46.21` et `76.16`, sans recopier la formule `100 * np.tanh(abs(raw_diff) * 10)` de `modules/linguistic.py:50`) et `direction == "Masculin"`.
+  - Si `* 10` était remplacé par `* 20` dans `modules/linguistic.py:50`, les scores vaudraient `76.16` (au lieu de `46.21`) et `96.40` (au lieu de `76.16`), faisant échouer `assert res["score"] == pytest.approx(expected_score, abs=0.1)` (`tests/test_modules.py:167`).
+- **`docs/agents/TASKS.md:68`** : la Tâche 10 est marquée `[x]`.
+
+## 2. Résultat des tests (`python -m pytest -q`)
+```text
+...............                                                          [100%]
+15 passed in 50.61s
+```
+
+Aucun problème détecté.
