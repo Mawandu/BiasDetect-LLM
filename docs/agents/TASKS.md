@@ -13,7 +13,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
     3. Ajouter `biasdetect/data/__init__.py`, `biasdetect/data/loaders.py` et `biasdetect/annotation/__init__.py` au suivi Git.
   - **Critère de réussite vérifiable** : `git check-ignore -v biasdetect/data/loaders.py` ne retourne rien (code retour `1`) et `git ls-files biasdetect/data/loaders.py biasdetect/annotation/__init__.py` affiche bien les deux fichiers.
 
-- [ ] **Tâche 2 : Mettre à jour `requirements.txt` avec les dépendances réelles du projet**
+- [x] **Tâche 2 : Mettre à jour `requirements.txt` avec les dépendances réelles du projet**
   - **Fichiers** : `requirements.txt`
   - **Action** : Ajouter les bibliothèques utilisées par `biasdetect/` et `experiments/` (`rdflib`, `scikit-learn`, `scipy`, `PyYAML`, `openai`, `datasets`, `tqdm`, `torch`, `transformers`) dans `requirements.txt`.
   - **Critère de réussite vérifiable** : Toutes les bibliothèques tierces importées dans `biasdetect/`, `modules/`, `experiments/` et `main.py` figurent dans `requirements.txt`, et `.venv/bin/python -m pytest -q` passe.

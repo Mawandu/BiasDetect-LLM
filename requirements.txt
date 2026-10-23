@@ -1,8 +1,13 @@
 streamlit>=1.30.0
 spacy>=3.7.0
 sentence-transformers>=2.3.0
-pandas
 numpy
-plotly
-matplotlib
+pandas
+scikit-learn
+scipy
+rdflib
+PyYAML
+openai
+datasets
+tqdm
 pytest
