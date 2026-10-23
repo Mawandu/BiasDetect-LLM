@@ -113,6 +113,12 @@ def test_ece_calibrated_and_miscalibrated():
     assert eval_metrics.ece(np.array([0, 0, 1, 1]), np.array([0.9, 0.9, 0.9, 0.9])) == pytest.approx(0.4)
 
 
+def test_ece_weights_bins_by_frequency():
+    y = np.array([0, 0, 0, 1])
+    p = np.array([0.15, 0.15, 0.15, 0.85])
+    assert eval_metrics.ece(y, p) == pytest.approx(0.15)
+
+
 def test_metrics_perfect_scores():
     y = np.array([0, 1, 0, 1])
     s = np.array([0.1, 0.9, 0.2, 0.8])

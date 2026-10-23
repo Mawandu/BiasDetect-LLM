@@ -70,7 +70,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Action** : Ajouter un test avec un faux SentenceTransformer dont les vecteurs donnent un raw_diff connu (par exemple 0.05 puis 0.1) et verifier le score avec pytest.approx (environ 46 et 76, selon le commentaire de modules/linguistic.py). Ne pas modifier modules/linguistic.py. Aucun reseau, aucun chargement de modele.
   - **Critere de reussite verifiable** : le test passe, et remplacer temporairement "* 10" par "* 20" dans modules/linguistic.py le fait echouer.
 
-- [ ] **Tâche 11 : renforcer le test de ece (tranches de tailles différentes)**
+- [x] **Tâche 11 : renforcer le test de ece (tranches de tailles différentes)**
   - **Fichiers** : tests/test_biasdetect.py
   - **Action** : Ajouter un test de biasdetect.eval.metrics.ece avec y=[0,0,0,1] et p=[0.15,0.15,0.15,0.85], valeur attendue 0.15 (pytest.approx). Ne pas modifier biasdetect/eval/metrics.py.
   - **Critere de reussite verifiable** : le test passe, et remplacer temporairement " * (idx == b).mean()" par " * 1" dans biasdetect/eval/metrics.py le fait echouer.
