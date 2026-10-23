@@ -37,7 +37,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
     2. Ajouter des tests unitaires pour `modules/linguistic.py` (`LinguisticAnalyzer`) en mockant `SentenceTransformer` pour ne charger aucun modèle lourd et ne faire aucun accès réseau (tester texte vide, biais masculin, biais féminin, texte neutre).
   - **Critère de réussite vérifiable** : `.venv/bin/python -m pytest -q` passe et couvre `modules/linguistic.py`, `modules/symbolic.py` et `modules/fusion.py`.
 
-- [ ] **Tâche 6 : Ajouter des tests unitaires (sans réseau ni chargement de modèle) pour `biasdetect/eval/metrics.py` et `biasdetect/data/loaders.py`**
+- [x] **Tâche 6 : Ajouter des tests unitaires (sans réseau ni chargement de modèle) pour `biasdetect/eval/metrics.py` et `biasdetect/data/loaders.py`**
   - **Fichiers** : `tests/test_biasdetect.py` (nouveau fichier)
   - **Action** :
     1. Tester toutes les fonctions de `biasdetect/eval/metrics.py` (`best_threshold`, `ece`, `metrics`, `pairwise_accuracy`, `bootstrap_ci`, `mcnemar`) sur des tableaux synthétiques déterministes.
