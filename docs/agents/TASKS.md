@@ -30,7 +30,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
     2. Dans `biasdetect/annotation/agreement.py:64`, s'assurer que le dossier parent existe avant l'écriture (`out_path = ROOT / "data" / "bold" / "gold.csv"; out_path.parent.mkdir(parents=True, exist_ok=True)`), ou permettre de paramétrer les chemins pour les tests unitaires sans toucher à `/data/`.
   - **Critère de réussite vérifiable** : Les fonctions de `export.py` et `agreement.py` s'exécutent sans erreur sur un répertoire temporaire (`tmp_path` pytest) sans modifier `/data/`.
 
-- [ ] **Tâche 5 : Optimiser la fixture `sym` dans `tests/test_modules.py` et tester `modules/linguistic.py` avec mock**
+- [x] **Tâche 5 : Optimiser la fixture `sym` dans `tests/test_modules.py` et tester `modules/linguistic.py` avec mock**
   - **Fichiers** : `tests/test_modules.py`
   - **Action** :
     1. Dans `tests/test_modules.py:25-33`, éviter le double appel à `spacy.load("en_core_web_sm")` en instanciant directement `SymbolicAnalyzer()` et en faisant `if sym_analyzer.nlp is None: pytest.skip("en_core_web_sm not installed")`.
