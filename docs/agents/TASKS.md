@@ -94,3 +94,8 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Fichiers** : biasdetect/features/symbolic.py, tests/test_ontology.py
   - **Action** : Dans Ontology.__init__, quand un terme a plusieurs prov:wasDerivedFrom, choisir de façon déterministe (par exemple la plus petite source par ordre alphabétique) au lieu de g.value. Ne pas toucher à data/ontology/bias_s13.ttl. Ajouter un test sur une mini-ontologie en tmp_path avec un terme à deux sources.
   - **Critere de reussite verifiable** : le test construit la mini-ontologie en ajoutant la source S2 avant S1 et exige source == S1 (plus petit identifiant par ordre alphabétique) ; il passe, et remplacer temporairement la sélection par g.value le fait échouer.
+
+- [ ] **Tâche 13 : renforcer les tests de Majority et HybridFusion**
+  - **Fichiers** : tests/test_models.py
+  - **Action** : Tester Majority avec une prévalence différente de 0.5 (par exemple labels [1,1,1,0], attendu 0.75). Pour HybridFusion, vérifier au moins une valeur de score ou de branch_weights sur des données synthétiques déterministes. Ne pas modifier biasdetect/.
+  - **Critere de reussite verifiable** : inverser la prévalence dans Majority.fit, ou multiplier par 0 les features symboliques dans HybridFusion._X, fait échouer un test.
