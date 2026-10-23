@@ -178,3 +178,40 @@ Aucun problème détecté.
 ```
 
 Aucun problème détecté.
+
+---
+
+# Revue de Code — Tâche 7a (`b57ad0c..HEAD`)
+
+**Statut : OK**
+
+## 1. Vérification du diff et des critères
+- **`tests/test_ontology.py:1-184` (nouveau fichier)** :
+  - La fixture `mini_ttl` (`tests/test_ontology.py:60-69`) sérialise une mini-ontologie RDF/Turtle dans `tmp_path / "mini.ttl"`, redirige `symbolic.ttl_path` vers ce fichier via `monkeypatch` (`:67`) et remplace `symbolic.build` par `fail_build` (`:68`) qui lève `AssertionError` s'il est appelé. Aucun test ne lit ni n'écrit `data/ontology/bias_s13.ttl` ni aucun fichier de `data/`, et aucun accès réseau ni chargement de modèle n'a lieu.
+  - Couvre `biasdetect/ontology/build.py` : `_uri` (`:79-82`), `_hb_descriptors` (`:85-98`), `stereo_attributes` avec `load_processed` mocké (`:101-128`).
+  - Couvre `biasdetect/features/symbolic.py` : `Ontology` (`:133-146`), `SymbolicFeaturizer.analyze` (`:149-173`, règles `group_mention`, `dispreferred_term` multi-mots, `occ_congruent`, `stereo_attribute`) et `SymbolicFeaturizer.transform` (`:176-184`). Casser l'une des 3 branches de règles dans `SymbolicFeaturizer.analyze` (`biasdetect/features/symbolic.py:86-129`) fait échouer `test_analyze_group_occupation_and_attribute_rules` ou `test_analyze_dispreferred_multiword_term`.
+- **`docs/agents/TASKS.md:78`** : la Tâche 7a est marquée `[x]`.
+
+## 2. Recalcul manuel des valeurs attendues
+- **`stereo_attributes` (`tests/test_ontology.py:101-128`, `biasdetect/ontology/build.py:73-90`)** :
+  - Sur le split `train`, il y a $n_1 = 3$ phrases positives (`"happy family"` $\times 3$) et $n_0 = 2$ phrases négatives (`"sad person"` $\times 2$) ; la 6ᵉ ligne (`"zzz test"`, `split == "test"`) est exclue.
+  - Pour `"happy"` : $c_1 = 3, c_0 = 0, \alpha = 1.0 \implies \text{log\_odds} = \ln\left(\frac{3+1}{3-3+1}\right) - \ln\left(\frac{0+1}{2-0+1}\right) = \ln(4) - \ln(1/3) = \ln(12)$, conforme à `pytest.approx(math.log(12))` (`tests/test_ontology.py:120`).
+  - Pour `"sad"` (`min_count=2`) : $c_1 = 0, c_0 = 2, \alpha = 1.0 \implies \text{log\_odds} = \ln\left(\frac{0+1}{3-0+1}\right) - \ln\left(\frac{2+1}{2-2+1}\right) = \ln(1/4) - \ln(3) = -\ln(12)$, conforme à `pytest.approx(-math.log(12))` (`tests/test_ontology.py:127`).
+- **`SymbolicFeaturizer.analyze` (`tests/test_ontology.py:149-163`, `biasdetect/features/symbolic.py:80-129`)** :
+  - Phrase : `"The woman is a nurse and she is emotional."`
+  - Métier `"nurse"` avec `pctFemale = 90.0` (`tests/test_ontology.py:52`) : $\text{skew} = \frac{90.0 - 50}{50} = 0.8 \implies \text{occ\_skew} = |0.8| = 0.8$ (`tests/test_ontology.py:154`). Comme $|\text{skew}| = 0.8 \ge 0.4$, `stereo_pole = "female"` et la phrase contient uniquement des références féminines (`"woman"`, `"she"`), d'où `occ_congruent = 1` et `occ_incongruent = 0` (`tests/test_ontology.py:155-156`).
+  - Attribut `"emotional"` (`logOdds = 1.5` pour `"gender"`, `tests/test_ontology.py:54`) : seul attribut présent dans la phrase, d'où `attr_max_gender = 1.5`, `attr_min_gender = 1.5`, `attr_sum = 1.5` (`tests/test_ontology.py:157-159`).
+
+## 3. Résultat des tests (`python -m pytest -q --durations=5`)
+```text
+........................................                                 [100%]
+============================= slowest 5 durations ==============================
+3.93s setup    tests/test_modules.py::test_symbolic_single_word
+1.44s call     tests/test_biasdetect.py::test_best_threshold_separates_perfectly
+1.04s call     tests/test_biasdetect.py::test_agreement_resolve_creates_parent_and_writes_gold_in_tmp_path
+0.55s call     tests/test_biasdetect.py::test_bootstrap_ci_deterministic_on_perfect_scores
+0.15s call     tests/test_biasdetect.py::test_symbolic_lr_passes_seed_to_featurizer
+40 passed in 55.33s
+```
+
+Aucun problème détecté.
