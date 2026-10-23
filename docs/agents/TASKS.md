@@ -23,7 +23,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Action** : Dans `SymbolicLR.fit` (`biasdetect/models/systems.py:182-186`), remplacer `self.fz = SymbolicFeaturizer()` par `self.fz = SymbolicFeaturizer(seed=self.seed)` (comme dans `HybridFusion.fit` à la ligne 239).
   - **Critère de réussite vérifiable** : Après appel à `sys = SymbolicLR(); sys.seed = 21` (avec `SymbolicFeaturizer` mocké), `SymbolicFeaturizer` est bien appelé avec `seed=21`.
 
-- [ ] **Tâche 4 : Corriger `biasdetect/annotation/agreement.py` (création du dossier parent et cohérence docstring) et rendre `export.py` / `agreement.py` testables**
+- [x] **Tâche 4 : Corriger `biasdetect/annotation/agreement.py` (création du dossier parent et cohérence docstring) et rendre `export.py` / `agreement.py` testables**
   - **Fichiers** : `biasdetect/annotation/agreement.py`, `biasdetect/annotation/export.py`
   - **Action** :
     1. Dans `biasdetect/annotation/agreement.py:8`, aligner la docstring sur le chemin réel `data/bold/gold.csv`.

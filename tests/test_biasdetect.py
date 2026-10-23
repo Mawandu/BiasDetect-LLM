@@ -8,6 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from biasdetect.annotation import agreement
 from biasdetect.models import systems
 
 
@@ -61,3 +62,35 @@ def test_symbolic_lr_default_seed_is_13(monkeypatch, toy_split):
     sysobj.fit(train, dev)
 
     assert DummyFeaturizer.calls == [13]
+
+
+# ---------- agreement : ecriture du gold sans toucher a data/ ----------
+
+def test_agreement_resolve_creates_parent_and_writes_gold_in_tmp_path(monkeypatch, tmp_path):
+    """`--resolve` cree `data/bold/` et ecrit `gold.csv` (redirige vers `tmp_path`)."""
+    ann = tmp_path / "annotation"
+    ann.mkdir()
+    items = pd.DataFrame({
+        "item_id": ["it0000", "it0001"],
+        "text": ["a", "b"],
+        "label": ["0", "1"],
+        "category": ["none", "gender"],
+        "domain": ["gender", "race"],
+    })
+    items[["item_id", "text", "label", "category"]].to_csv(ann / "to_annotate_A1.csv", index=False)
+    items[["item_id", "text", "label", "category"]].to_csv(ann / "to_annotate_A2.csv", index=False)
+    items[["item_id", "domain"]].to_csv(ann / "items_master.csv", index=False)
+    pd.DataFrame(columns=["item_id", "gold"]).to_csv(ann / "disagreements.csv", index=False)
+
+    monkeypatch.setattr(agreement, "ROOT", tmp_path)
+    monkeypatch.setattr(agreement, "ANN", ann)
+    monkeypatch.setattr(sys, "argv", ["agreement", "--resolve"])
+
+    agreement.main()
+
+    out = tmp_path / "data" / "bold" / "gold.csv"
+    assert out.parent.is_dir()
+    assert out.exists()
+    gold = pd.read_csv(out)
+    assert len(gold) == 2
+    assert list(gold["label"]) == [0, 1]

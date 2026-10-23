@@ -5,7 +5,7 @@
 
 Outputs
     annotation/disagreements.csv   items to adjudicate (fill the 'gold' column)
-    annotation/gold.csv            final labels used for evaluation (data/bold/gold.csv)
+    data/bold/gold.csv             final labels used for evaluation
 """
 from __future__ import annotations
 
@@ -61,7 +61,9 @@ def main():
     dis = pd.read_csv(dis_path, dtype=str).set_index("item_id")
     gold = pd.concat([agree.label_a.rename("gold"), dis.gold[dis.gold.isin(["0", "1"])]])
     out = master.join(gold, how="inner").assign(label=lambda d: d.gold.astype(int))
-    out.to_csv(ROOT / "data" / "bold" / "gold.csv")
+    out_path = ROOT / "data" / "bold" / "gold.csv"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out.to_csv(out_path)
     print(f"gold.csv: {len(out)} items, {out.label.mean():.1%} stereotypical")
 
 
