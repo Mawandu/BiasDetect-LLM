@@ -177,3 +177,5 @@ Voici l'état pour chaque module de `biasdetect/` :
   - `biasdetect/data/loaders.py:35` (`urllib.request.urlretrieve`) et `:51` (`load_dataset("McGill-NLP/stereoset", ...)`) téléchargent depuis GitHub/Washington/HuggingFace si les fichiers ne sont pas en cache.
   - `biasdetect/features/neural.py:29` (`SentenceTransformer(ENCODERS[key])`) charge un modèle HuggingFace / SentenceTransformers.
   - `biasdetect/models/systems.py:90-91` (`AutoTokenizer.from_pretrained`, `AutoModelForSequenceClassification.from_pretrained`) et `:157, 161` (`LLMClient` -> API OpenAI/Groq/Gemini à `biasdetect/llm/client.py:68, 80`) chargent un modèle ou appellent une API externe.
+
+> Vérification humaine de A3 sur data/ontology/bias_s13.ttl : 0 terme à plusieurs catégories ; 3 éléments sur 778 ont plusieurs prov:wasDerivedFrom (source arbitraire dans l'explication). Impact sur les features numériques : non vérifié.
