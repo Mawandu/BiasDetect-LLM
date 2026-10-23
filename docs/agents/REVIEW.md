@@ -54,3 +54,34 @@ Tous les imports tiers (au niveau module comme à l'intérieur des fonctions/mé
 - `transformers` (`requirements-train.txt:2`) : `biasdetect/models/systems.py:87` (dans `ZeroShotNLI.fit`), `biasdetect/models/systems.py:118` (dans `FineTuned.fit`), `experiments/train_transformer.py:17`
 
 Aucun problème détecté.
+
+---
+
+# Revue de Code — Tâche 5 (`05b9b9c..408b452`)
+
+**Statut : OK**
+
+## 1. Vérification du diff (`git diff 05b9b9c..408b452`)
+- **`tests/test_modules.py:28-34` (fixture `sym`)** : suppression de l'appel redondant `spacy.load("en_core_web_sm")`. La fixture instancie une seule fois `sym_analyzer = SymbolicAnalyzer()` (qui charge `en_core_web_sm` dans `modules/symbolic.py:11`) et appelle `pytest.skip("en_core_web_sm not installed")` si `sym_analyzer.nlp is None`. Le temps de setup de `test_symbolic_single_word` passe de `16.10s` (lors de l'audit initial) à `5.13s`.
+- **`tests/test_modules.py:61-90` (`FakeSentenceTransformer` et fixture `fake_encoder`)** : `monkeypatch.setattr(linguistic, "SentenceTransformer", FakeSentenceTransformer)` (`tests/test_modules.py:89`) remplace `SentenceTransformer` par un encodeur déterministe 2D sans chargement de poids ni appel réseau.
+- **`tests/test_modules.py:93-125`** : ajout de 5 tests unitaires couvrant `modules/linguistic.py` :
+  - `test_linguistic_uses_mocked_model` (`tests/test_modules.py:93-96`)
+  - `test_linguistic_empty_text` (`tests/test_modules.py:99-104`)
+  - `test_linguistic_male_bias` (`tests/test_modules.py:107-111`)
+  - `test_linguistic_female_bias` (`tests/test_modules.py:114-118`)
+  - `test_linguistic_neutral_text` (`tests/test_modules.py:121-125`)
+- **`docs/agents/TASKS.md:33`** : la Tâche 5 est marquée `[x]` (et la Tâche 10 à `docs/agents/TASKS.md:68-71` est déjà prévue pour tester un `raw_diff` intermédiaire de `0.05` et `0.1`).
+
+## 2. Résultat des tests (`python -m pytest -q --durations=5`)
+```text
+.............                                                            [100%]
+============================= slowest 5 durations ==============================
+5.13s setup    tests/test_modules.py::test_symbolic_single_word
+0.15s call     tests/test_biasdetect.py::test_symbolic_lr_passes_seed_to_featurizer
+0.05s call     tests/test_biasdetect.py::test_symbolic_lr_default_seed_is_13
+0.04s call     tests/test_modules.py::test_symbolic_single_word
+0.03s call     tests/test_modules.py::test_symbolic_multi_word
+13 passed in 47.25s
+```
+
+Aucun problème détecté.
