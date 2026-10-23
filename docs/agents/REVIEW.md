@@ -20,3 +20,37 @@
 ```
 
 Aucun problème détecté. Aucune tâche supplémentaire ajoutée dans `docs/agents/TASKS.md`.
+
+---
+
+# Revue de Code — Tâche 2 (`61ec55a..ca3f4e6`)
+
+**Statut : OK**
+
+## 1. Vérification du diff (`git diff 61ec55a..ca3f4e6`)
+- **`requirements.txt:1-13`** :
+  - Suppression des paquets inutilisés `plotly` et `matplotlib` (aucun import dans le dépôt).
+  - Ajout de `scikit-learn`, `scipy`, `rdflib`, `PyYAML`, `openai`, `datasets`, `tqdm`.
+- **`requirements-train.txt:1-2`** :
+  - Création du fichier dédiant `torch` et `transformers` à l'entraînement / inférence lourde (`B3`/`B4`).
+- **`docs/agents/TASKS.md:16`** : la Tâche 2 est marquée `[x]` (et la Tâche 9 à `docs/agents/TASKS.md:63-66` prévoit déjà la documentation de `requirements-train.txt` et le déplacement de `pytest` vers `requirements-dev.txt`).
+
+## 2. Couverture exhaustive des imports tiers (`biasdetect/`, `modules/`, `experiments/`, `main.py`)
+Tous les imports tiers (au niveau module comme à l'intérieur des fonctions/méthodes) sont couverts par `requirements.txt` et `requirements-train.txt`, sans paquet inutile :
+- `streamlit>=1.30.0` (`requirements.txt:1`) : `main.py:1`
+- `spacy>=3.7.0` (`requirements.txt:2`) : `modules/symbolic.py:1-2`
+- `sentence-transformers>=2.3.0` (`requirements.txt:3`) : `modules/linguistic.py:1`, `biasdetect/features/neural.py:26` (dans `_get_model`)
+- `numpy` (`requirements.txt:4`) : `modules/linguistic.py:2`, `biasdetect/data/loaders.py:16`, `biasdetect/eval/metrics.py:4`, `biasdetect/features/neural.py:7`, `biasdetect/features/symbolic.py:8`, `biasdetect/models/systems.py:11`, `experiments/generate_bold.py:13`, `experiments/run.py:23`, `experiments/train_transformer.py:14`
+- `pandas` (`requirements.txt:5`) : `biasdetect/annotation/agreement.py:15`, `biasdetect/annotation/export.py:10`, `biasdetect/data/loaders.py:17`, `biasdetect/eval/metrics.py:5`, `biasdetect/models/systems.py:12`, `biasdetect/ontology/build.py:26`, `experiments/generate_bold.py:14`, `experiments/run.py:24`
+- `scikit-learn` (`requirements.txt:6`) : `biasdetect/annotation/agreement.py:16`, `biasdetect/eval/metrics.py:7`, `biasdetect/models/systems.py:13-16`
+- `scipy` (`requirements.txt:7`) : `biasdetect/eval/metrics.py:6`
+- `rdflib` (`requirements.txt:8`) : `biasdetect/features/symbolic.py:9-10`, `biasdetect/ontology/build.py:27-28`
+- `PyYAML` (`requirements.txt:9`) : `biasdetect/llm/client.py:17`
+- `openai` (`requirements.txt:10`) : `biasdetect/llm/client.py:59` (dans `LLMClient.__post_init__`)
+- `datasets` (`requirements.txt:11`) : `biasdetect/data/loaders.py:49` (dans `load_stereoset`), `experiments/generate_bold.py:26` (dans `sample_prompts`)
+- `tqdm` (`requirements.txt:12`) : `biasdetect/models/systems.py:164` (dans `LLMJudge.score`), `experiments/generate_bold.py:15`
+- `pytest` (`requirements.txt:13`) : `tests/test_modules.py:4`, `tests/test_biasdetect.py:7` (séparation dans `requirements-dev.txt` déjà planifiée en Tâche 9, `docs/agents/TASKS.md:63-66`)
+- `torch` (`requirements-train.txt:1`) : `biasdetect/models/systems.py:86` (dans `ZeroShotNLI.fit`), `biasdetect/models/systems.py:117` (dans `FineTuned.fit`), `experiments/train_transformer.py:15-16`
+- `transformers` (`requirements-train.txt:2`) : `biasdetect/models/systems.py:87` (dans `ZeroShotNLI.fit`), `biasdetect/models/systems.py:118` (dans `FineTuned.fit`), `experiments/train_transformer.py:17`
+
+Aucun problème détecté.
