@@ -60,7 +60,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
     2. Retirer ou qualifier clairement les éléments non implémentés (analyse stylométrique, score de toxicité, surlignage token par token dans le texte) et documenter les composants réellement implémentés (ontologie RDF/Turtle `S1`–`S4` avec provenance `prov:wasDerivedFrom`, `SymbolicFeaturizer`, sonde logistique `NeuralProbe`, fusion par stacking `HybridFusion` avec `GroupKFold`, et évaluation sur StereoSet, CrowS-Pairs et SBIC).
   - **Critère de réussite vérifiable** : Aucune composante absente du code n'est présentée comme implémentée dans `architecture.md` ou `README.md`.
 
-- [ ] **Tâche 9 : documenter requirements-train.txt et séparer pytest**
+- [x] **Tâche 9 (REMPLACÉE par la Tâche 15 : ne pas exécuter) : documenter requirements-train.txt et séparer pytest**
   - **Fichiers** : README.md, requirements.txt, requirements-dev.txt
   - **Action** : Ajouter au README une section expliquant requirements-train.txt (entraînement, Colab) ; déplacer pytest dans requirements-dev.txt. Aucun pip install.
   - **Critère de réussite vérifiable** : grep -n "requirements-train" README.md affiche au moins une ligne et pytest n apparait plus dans requirements.txt.
@@ -109,3 +109,8 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Fichiers** : biasdetect/annotation/export.py, tests/test_llm_annotation.py
   - **Action** : export.py:27-29 utilise groupby().apply(), qui retire les colonnes de regroupement avec pandas 3.0.6, et agreement.py:48-50 a ensuite besoin de domain. Écrire d'abord le test et constater qu'il échoue, puis remplacer par un échantillonnage qui garde toutes les colonnes (mélange puis head(per) par groupe). Le test enchaîne export puis agreement sans --resolve dans tmp_path (SRC et OUT redirigés) avec un generations.csv synthétique.
   - **Critère de réussite vérifiable** : le test vérifie que domain et generator figurent dans items_master.csv et que agreement.main() écrit disagreements.csv. Il échoue sur le code actuel et passe après correction. Rien n'est écrit dans data/.
+
+- [ ] **Tâche 15 : fixer les dépendances et supprimer requirements-train.txt (remplace la Tâche 9)**
+  - **Fichiers** : requirements.txt, requirements-dev.txt (nouveau), requirements-train.txt (à supprimer avec git rm), README.md, tests/test_requirements.py (nouveau)
+  - **Action** : requirements.txt avec versions exactes (==) pour streamlit 1.66.0, spacy 3.8.16, sentence-transformers 6.1.0, transformers 5.20.2, numpy 2.5.4, pandas 3.0.6, scikit-learn 1.9.1, scipy 1.18.1, rdflib 7.6.0, PyYAML 6.0.3, openai 3.35.1, datasets 5.1.0, tqdm 4.70.1. Ne pas lister torch (il arrive via sentence-transformers ; ne jamais écrire de version +cpu). requirements-dev.txt : pytest==9.1.1. README : expliquer cela et la commande python -m spacy download en_core_web_sm (sans l'exécuter). Test sans réseau : parcourir par ast les imports tiers de biasdetect/, modules/, experiments/ et main.py (y compris dans les fonctions) et vérifier qu'ils sont tous couverts par requirements.txt ou par une dépendance connue (mapping sklearn vers scikit-learn, yaml vers PyYAML, sentence_transformers vers sentence-transformers). Aucun pip install, aucun téléchargement.
+  - **Critère de réussite vérifiable** : le test passe, grep -c "==" requirements.txt vaut 13, requirements-train.txt n'existe plus, et retirer temporairement une ligne de requirements.txt fait échouer le test.
