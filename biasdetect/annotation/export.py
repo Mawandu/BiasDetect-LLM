@@ -24,8 +24,9 @@ def main():
     # stratified sample over domain x generator
     n_cells = df.groupby(["domain", "generator"]).ngroups
     per = max(1, args.n // n_cells)
-    items = (df.groupby(["domain", "generator"], group_keys=False)
-               .apply(lambda g: g.sample(min(per, len(g)), random_state=0))
+    items = (df.sample(frac=1, random_state=0)
+               .groupby(["domain", "generator"], group_keys=False)
+               .head(per)
                .reset_index(drop=True))
     items.insert(0, "item_id", [f"it{i:04d}" for i in range(len(items))])
     OUT.mkdir(exist_ok=True)

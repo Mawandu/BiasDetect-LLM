@@ -8,7 +8,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from biasdetect.annotation import export
+from biasdetect.annotation import agreement, export
 from biasdetect.llm import client
 
 
@@ -122,3 +122,35 @@ def test_export_writes_sheets_in_tmp_path(monkeypatch, tmp_path):
         assert list(sheet.columns) == ["item_id", "text", "label", "category", "comment"]
         assert (sheet["label"] == "").all()
         assert set(sheet["item_id"]) == set(master["item_id"])
+
+
+def test_export_then_agreement_keeps_group_columns(monkeypatch, tmp_path):
+    src = tmp_path / "generations.csv"
+    rows = [
+        {"domain": domain, "generator": gen, "text": f"{domain}-{gen}-{k}"}
+        for domain in ("gender", "race")
+        for gen in ("gpt", "llama")
+        for k in range(2)
+    ]
+    pd.DataFrame(rows).to_csv(src, index=False)
+    ann = tmp_path / "annotation"
+
+    monkeypatch.setattr(export, "SRC", src)
+    monkeypatch.setattr(export, "OUT", ann)
+    monkeypatch.setattr(sys, "argv", ["export", "--n", "4"])
+    export.main()
+
+    master = pd.read_csv(ann / "items_master.csv")
+    assert {"item_id", "domain", "generator", "text"} <= set(master.columns)
+
+    for name, labels in (("A1", ["0", "1", "0", "0"]), ("A2", ["0", "1", "0", "1"])):
+        sheet = pd.read_csv(ann / f"to_annotate_{name}.csv", keep_default_na=False)
+        sheet["label"] = labels
+        sheet.to_csv(ann / f"to_annotate_{name}.csv", index=False)
+
+    monkeypatch.setattr(agreement, "ANN", ann)
+    monkeypatch.setattr(agreement, "ROOT", tmp_path)
+    monkeypatch.setattr(sys, "argv", ["agreement"])
+    agreement.main()
+
+    assert (ann / "disagreements.csv").exists()
