@@ -99,3 +99,8 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Fichiers** : tests/test_models.py
   - **Action** : Tester Majority avec une prévalence différente de 0.5 (par exemple labels [1,1,1,0], attendu 0.75). Pour HybridFusion, vérifier au moins une valeur de score ou de branch_weights sur des données synthétiques déterministes. Ne pas modifier biasdetect/.
   - **Critere de reussite verifiable** : inverser la prévalence dans Majority.fit, ou multiplier par 0 les features symboliques dans HybridFusion._X, fait échouer un test.
+
+- [ ] **Tâche 17 : rendre le cache de prédictions de run.py sûr**
+  - **Fichiers** : experiments/run.py, tests/test_run_cache.py (nouveau)
+  - **Action** : dans run_system, ne relire un fichier de prédictions que si sa longueur égale celle du jeu df ; sinon recalculer (ou lever une erreur explicite). Ajouter une option --no-cache. Garder la logique de seuil cohérente : si les scores sont relus, ne pas appliquer un seuil issu d'un modèle ré-entraîné avec un autre code. Tester avec PRED redirigé vers tmp_path (monkeypatch) et un faux système, sans réseau ni modèle, sans écrire dans results/ ni data/.
+  - **Critère de réussite vérifiable** : un test montre qu'un jeu de taille différente ne réutilise pas l'ancien fichier, et qu'avec --no-cache le fichier est recalculé. Il échoue sur le code actuel et passe après correction.
