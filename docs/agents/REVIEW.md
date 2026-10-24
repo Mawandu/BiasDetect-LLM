@@ -252,3 +252,66 @@ Aucun problème détecté.
 ```
 
 Aucun problème détecté.
+
+---
+
+# Revue de Code — Tâche 7c (`95fab0a`)
+
+**Statut : OK**
+
+## 1. Vérification du diff et des critères
+- **`tests/test_llm_annotation.py:1-125` (nouveau fichier)** :
+  - La fixture `isolated_env` (`tests/test_llm_annotation.py:15-20`, `autouse=True`) neutralise `client._load_dotenv` via `monkeypatch.setattr(client, "_load_dotenv", lambda: None)` (`:17`) et supprime `OPENAI_API_KEY`, `GEMINI_API_KEY` et `GROQ_API_KEY` de l'environnement (`:18-19`). Le fichier `.env` n'est jamais lu ni référencé.
+  - `_install_fake_openai` (`tests/test_llm_annotation.py:22-38`) remplace `openai.OpenAI` par `FakeOpenAI` via `monkeypatch` : aucun appel réseau n'est effectué.
+  - Couvre `biasdetect/llm/client.py` : `load_config` (`:43-46`), `available_models` avec et sans clé (`:49-57`), erreurs de validation de `LLMClient` (`:60-67`), `LLMClient.chat_json` sur JSON brut et JSON entouré de balises Markdown (`:70-94`).
+  - Couvre `biasdetect/annotation/export.py` : `test_export_writes_sheets_in_tmp_path` (`:98-125`) redirige `export.SRC` et `export.OUT` vers `tmp_path` (`:109-110`) sans rien écrire dans `data/` ni `annotation/`.
+- **`docs/agents/TASKS.md:88`** : la Tâche 7c est marquée `[x]`.
+
+---
+
+# Revue de Code — Tâche 14 (`95fab0a..HEAD`)
+
+**Statut : OK**
+
+## 1. Vérification du diff et des critères
+- **`biasdetect/annotation/export.py:27-30`** : remplacement de `df.groupby(["domain", "generator"], group_keys=False).apply(lambda g: g.sample(min(per, len(g)), random_state=0))` (qui supprime les colonnes de regroupement `domain` et `generator` sous pandas 3.0.6) par `df.sample(frac=1, random_state=0).groupby(["domain", "generator"], group_keys=False).head(per).reset_index(drop=True)`.
+- **`tests/test_llm_annotation.py:127-156` (`test_export_then_agreement_keeps_group_columns`)** :
+  - Enchaîne `export.main()` puis `agreement.main()` (sans `--resolve`) intégralement dans `tmp_path` (`export.SRC`, `export.OUT`, `agreement.ANN`, `agreement.ROOT` redirigés via `monkeypatch`). Aucune écriture dans `data/`.
+  - Vérifie que `{"item_id", "domain", "generator", "text"} <= set(master.columns)` (`tests/test_llm_annotation.py:144`) et que `(ann / "disagreements.csv").exists()` (`:156`).
+- **`docs/agents/TASKS.md:108`** : la Tâche 14 est marquée `[x]` (note : la Tâche 13 dans `tests/test_models.py:157-179` fait également partie de `2e72be9..HEAD` et passe).
+
+## 2. Résultat du test de sabotage sur `biasdetect/annotation/export.py`
+Commande exécutée : `git checkout 3af2dfa -- biasdetect/annotation/export.py && .venv/bin/python -m pytest -q tests/test_llm_annotation.py ; git checkout HEAD -- biasdetect/annotation/export.py`
+```text
+........F                                                                [100%]
+=================================== FAILURES ===================================
+________________ test_export_then_agreement_keeps_group_columns ________________
+...
+        master = pd.read_csv(ann / "items_master.csv")
+>       assert {"item_id", "domain", "generator", "text"} <= set(master.columns)
+E       AssertionError: assert {'domain', 'g...m_id', 'text'} <= {'item_id', 'text'}
+E         
+E         Extra items in the left set:
+E         'domain'
+E         'generator'
+
+tests/test_llm_annotation.py:144: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_llm_annotation.py::test_export_then_agreement_keeps_group_columns
+1 failed, 8 passed in 15.14s
+```
+Le test échoue bien sur l'ancienne version (`3af2dfa`) faute des colonnes `domain` et `generator` dans `items_master.csv`, et `export.py` a été remis à `HEAD`.
+
+## 3. Résultat global des tests (`python -m pytest -q --durations=5`)
+```text
+.........................................................                [100%]
+============================= slowest 5 durations ==============================
+5.09s setup    tests/test_modules.py::test_symbolic_single_word
+4.83s call     tests/test_llm_annotation.py::test_llm_client_rejects_unknown_provider
+2.25s call     tests/test_biasdetect.py::test_best_threshold_separates_perfectly
+0.83s call     tests/test_biasdetect.py::test_agreement_resolve_creates_parent_and_writes_gold_in_tmp_path
+0.76s call     tests/test_biasdetect.py::test_bootstrap_ci_deterministic_on_perfect_scores
+57 passed in 65.30s (0:01:05)
+```
+
+Aucun problème détecté.
