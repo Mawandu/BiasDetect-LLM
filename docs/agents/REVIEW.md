@@ -315,3 +315,6 @@ Le test échoue bien sur l'ancienne version (`3af2dfa`) faute des colonnes `doma
 ```
 
 Aucun problème détecté.
+
+# Vérification humaine — Tâche 13
+Sabotage Majority (prévalence inversée) : test_majority_returns_non_trivial_prevalence échoue. Sabotage HybridFusion (0 * features symboliques) : test_hybrid_fusion_relies_on_symbolic_features échoue. Fichiers restaurés.
