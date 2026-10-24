@@ -318,3 +318,49 @@ Aucun problème détecté.
 
 # Vérification humaine — Tâche 13
 Sabotage Majority (prévalence inversée) : test_majority_returns_non_trivial_prevalence échoue. Sabotage HybridFusion (0 * features symboliques) : test_hybrid_fusion_relies_on_symbolic_features échoue. Fichiers restaurés.
+
+---
+
+# Revue de Code — Tâche 15 (`85f8ab8..74517f1`)
+
+**Statut : OK**
+
+## 1. Vérification du diff et des critères (`git diff 85f8ab8..74517f1`)
+- **`requirements.txt:1-13`** : contient exactement 13 paquets épinglés avec `==` (`streamlit==1.66.0`, `spacy==3.8.16`, `sentence-transformers==6.1.0`, `transformers==5.20.2`, `numpy==2.5.4`, `pandas==3.0.6`, `scikit-learn==1.9.1`, `scipy==1.18.1`, `rdflib==7.6.0`, `PyYAML==6.0.3`, `openai==3.35.1`, `datasets==5.1.0`, `tqdm==4.70.1`). Aucune mention de `torch` ni de `+cpu`.
+- **`requirements-dev.txt:1` (nouveau fichier)** : contient uniquement `pytest==9.1.1`.
+- **`requirements-train.txt`** : supprimé (`deleted file mode 100644`).
+- **`README.md:58-66`** : documente l'épinglage dans `requirements.txt`, les outils de test dans `requirements-dev.txt`, l'installation transitive de `torch` via `sentence-transformers`, et la commande `python -m spacy download en_core_web_sm` sans mentionner `requirements-train.txt`.
+- **`tests/test_requirements.py:1-115` (nouveau fichier)** : parcourt par `ast` tous les fichiers `.py` de `biasdetect/`, `modules/`, `experiments/` et `main.py` (`_third_party_imports` à `:49-67`), vérifie la couverture complète des imports tiers (`test_all_third_party_imports_are_declared` à `:81-88`), l'épinglage exact des 13 versions (`test_requirements_are_pinned_to_expected_versions` à `:91-102`), `requirements-dev.txt` et l'absence de `requirements-train.txt` (`:105-108`), ainsi que la cohérence de `README.md` (`:111-115`).
+- **`docs/agents/TASKS.md:113`** : la Tâche 15 est marquée `[x]`.
+
+## 2. Résultat du test de sabotage sur `requirements.txt` (retrait de `rdflib`)
+Commande exécutée : `sed -i '/^rdflib==/d' requirements.txt && .venv/bin/python -m pytest -q tests/test_requirements.py ; git checkout HEAD -- requirements.txt`
+```text
+FF..                                                                     [100%]
+=================================== FAILURES ===================================
+__________________ test_all_third_party_imports_are_declared ___________________
+...
+>       assert not missing, f"imports non couverts par requirements.txt : {missing}"
+E       AssertionError: imports non couverts par requirements.txt : {'rdflib': ['biasdetect/features/symbolic.py', 'biasdetect/ontology/build.py']}
+
+tests/test_requirements.py:88: AssertionError
+______________ test_requirements_are_pinned_to_expected_versions _______________
+...
+>       assert len(lines) == 13
+E       AssertionError: assert 12 == 13
+
+tests/test_requirements.py:94: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_requirements.py::test_all_third_party_imports_are_declared
+FAILED tests/test_requirements.py::test_requirements_are_pinned_to_expected_versions
+2 failed, 2 passed in 0.29s
+```
+Le retrait de `rdflib` fait bien échouer `test_all_third_party_imports_are_declared` (en identifiant précisément `biasdetect/features/symbolic.py` et `biasdetect/ontology/build.py`) ainsi que `test_requirements_are_pinned_to_expected_versions`, et `requirements.txt` a été restauré à `HEAD`.
+
+## 3. Résultat global des tests (`python -m pytest -q`)
+```text
+.............................................................            [100%]
+61 passed in 59.71s
+```
+
+Aucun problème détecté.
