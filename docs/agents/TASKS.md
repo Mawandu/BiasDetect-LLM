@@ -105,7 +105,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Action** : dans run_system, ne relire un fichier de prédictions que si sa longueur égale celle du jeu df ; sinon recalculer (ou lever une erreur explicite). Ajouter une option --no-cache. Garder la logique de seuil cohérente : si les scores sont relus, ne pas appliquer un seuil issu d'un modèle ré-entraîné avec un autre code. Tester avec PRED redirigé vers tmp_path (monkeypatch) et un faux système, sans réseau ni modèle, sans écrire dans results/ ni data/.
   - **Critère de réussite vérifiable** : un test montre qu'un jeu de taille différente ne réutilise pas l'ancien fichier, et qu'avec --no-cache le fichier est recalculé. Il échoue sur le code actuel et passe après correction.
 
-- [ ] **Tâche 14 : conserver domain et generator dans l'export d'annotation (pandas 3)**
+- [x] **Tâche 14 : conserver domain et generator dans l'export d'annotation (pandas 3)**
   - **Fichiers** : biasdetect/annotation/export.py, tests/test_llm_annotation.py
   - **Action** : export.py:27-29 utilise groupby().apply(), qui retire les colonnes de regroupement avec pandas 3.0.6, et agreement.py:48-50 a ensuite besoin de domain. Écrire d'abord le test et constater qu'il échoue, puis remplacer par un échantillonnage qui garde toutes les colonnes (mélange puis head(per) par groupe). Le test enchaîne export puis agreement sans --resolve dans tmp_path (SRC et OUT redirigés) avec un generations.csv synthétique.
   - **Critère de réussite vérifiable** : le test vérifie que domain et generator figurent dans items_master.csv et que agreement.main() écrit disagreements.csv. Il échoue sur le code actuel et passe après correction. Rien n'est écrit dans data/.
