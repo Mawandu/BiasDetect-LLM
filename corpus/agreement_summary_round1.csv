@@ -1,0 +1,11 @@
+subset,N,observed_agreement,fleiss_kappa,kappa_ci95_low,kappa_ci95_high,gwet_ac1
+all,401,0.762,0.501,0.314,0.655,0.546
+GENDER,108,0.852,0.668,0.399,0.772,0.732
+ORIGIN,94,0.908,0.576,0.068,0.643,0.882
+OTHER,116,0.534,0.065,-0.152,0.255,0.073
+RELIGION,83,0.799,0.188,-0.049,0.455,0.733
+core (all except OTHER),285,0.855,0.674,0.453,0.807,0.739
+all excluding refusals,396,0.761,0.495,0.312,0.646,0.546
+pair A1-A2 (cohen),401,0.796,0.576,,,
+pair A1-A3 (cohen),401,0.768,0.53,,,
+pair A2-A3 (cohen),401,0.723,0.412,,,
