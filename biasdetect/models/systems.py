@@ -181,8 +181,9 @@ class SymbolicLR(System):
 
     def fit(self, train, dev):
         self.fz = SymbolicFeaturizer(seed=self.seed)
+        X = self.fz.transform_crossfit(train)
         self.clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000, C=1.0))
-        self.clf.fit(self.fz.transform(train.text), train.label)
+        self.clf.fit(X, train.label)
         return self
 
     def score(self, df):
@@ -238,7 +239,8 @@ class HybridFusion(System):
     def fit(self, train, dev):
         self.fz = SymbolicFeaturizer(seed=self.seed)
         self.probes = {e: LogisticRegression(max_iter=3000).fit(neural.embed(train.text, e), train.label) for e in self.encs}
-        X = np.hstack([self._neural_cols(train, train_mode=True), self.fz.transform(train.text)])
+        X_sym = self.fz.transform_crossfit(train)
+        X = np.hstack([self._neural_cols(train, train_mode=True), X_sym])
         self.feature_names = [f"neural_{e}" for e in self.encs] + list(SymbolicFeaturizer.FEATURE_NAMES)
         self.clf = make_pipeline(StandardScaler(), LogisticRegression(max_iter=3000))
         self.clf.fit(X, train.label)

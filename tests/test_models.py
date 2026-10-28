@@ -72,6 +72,9 @@ class DummyFeaturizer:
                 out.append(_FEATURES.get(text, [0.0, 0.0]))
         return np.array(out, dtype=float)
 
+    def transform_crossfit(self, train_df, n_splits=5):
+        return self.transform(train_df.text)
+
     def analyze(self, text):
         return SymbolicResult({}, [Rule("dummy", str(text), "fake rule", "S1")])
 

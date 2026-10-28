@@ -70,11 +70,9 @@ def _hb_descriptors(node):
                 yield x["descriptor"], x.get("preference", "reviewed")
 
 
-def stereo_attributes(seed: int = 13, min_count: int = 3, alpha: float = 1.0) -> pd.DataFrame:
+def stereo_attributes_from(df: pd.DataFrame, min_count: int = 3, alpha: float = 1.0) -> pd.DataFrame:
     """Log-odds (with add-alpha smoothing) of a word occurring in stereotype vs
-    anti-stereotype sentences of the StereoSet *train* split, per category."""
-    df = load_processed("stereoset", seed)
-    df = df[df.split == "train"]
+    anti-stereotype sentences, per category, from any ``text,label,category`` frame."""
     rows = []
     for cat, sub in df.groupby("category"):
         cnt = {1: Counter(), 0: Counter()}
@@ -88,6 +86,14 @@ def stereo_attributes(seed: int = 13, min_count: int = 3, alpha: float = 1.0) ->
             lo = math.log((c1 + alpha) / (n1 - c1 + alpha)) - math.log((c0 + alpha) / (n0 - c0 + alpha))
             rows.append({"word": w, "category": cat, "log_odds": lo, "n_stereo": c1, "n_anti": c0})
     return pd.DataFrame(rows)
+
+
+def stereo_attributes(seed: int = 13, min_count: int = 3, alpha: float = 1.0) -> pd.DataFrame:
+    """Log-odds (with add-alpha smoothing) of a word occurring in stereotype vs
+    anti-stereotype sentences of the StereoSet *train* split, per category."""
+    df = load_processed("stereoset", seed)
+    df = df[df.split == "train"]
+    return stereo_attributes_from(df, min_count=min_count, alpha=alpha)
 
 
 def build(seed: int = 13, min_abs_log_odds: float = 0.5) -> Graph:

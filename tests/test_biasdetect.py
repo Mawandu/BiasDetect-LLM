@@ -28,6 +28,9 @@ class DummyFeaturizer:
         texts = list(texts)
         return np.column_stack([np.arange(len(texts), dtype=float), np.ones(len(texts))])
 
+    def transform_crossfit(self, train_df, n_splits=5):
+        return self.transform(train_df.text)
+
     def analyze(self, text):
         raise NotImplementedError
 
