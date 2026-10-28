@@ -1,20 +1,33 @@
 """Symbolic features from the ontology + explanations (rules fired, with provenance)."""
 from __future__ import annotations
 
+import copy
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from rdflib import Graph, RDF
 from rdflib.namespace import PROV, RDFS
+from sklearn.model_selection import GroupKFold
 
-from biasdetect.ontology.build import BD, SOURCES, build, ttl_path
+from biasdetect.ontology.build import BD, SOURCES, build, stereo_attributes_from, ttl_path
 
 CATS = ["gender", "origin", "religion", "profession"]
 TOKEN_RE = re.compile(r"[a-z][a-z'\-]+")
 FEMALE_PRON = {"she", "her", "hers", "herself"}
 MALE_PRON = {"he", "him", "his", "himself"}
+MIN_ABS_LOG_ODDS = 0.5
+
+
+def _attributes_index(attributes: pd.DataFrame) -> dict[tuple[str, str], float]:
+    index = {}
+    for r in attributes.itertuples(index=False):
+        lo = float(r.log_odds)
+        if abs(lo) >= MIN_ABS_LOG_ODDS:
+            index[(str(r.word), str(r.category))] = lo
+    return index
 
 
 @dataclass
@@ -34,7 +47,7 @@ class SymbolicResult:
 class Ontology:
     """In-memory index of the RDF ontology for fast lexical matching."""
 
-    def __init__(self, seed: int = 13):
+    def __init__(self, seed: int = 13, attributes: pd.DataFrame | None = None):
         path = ttl_path(seed)
         if not Path(path).exists():
             build(seed)
@@ -55,8 +68,11 @@ class Ontology:
             for s in g.subjects(RDF.type, BD.Occupation)
         }
         self.attributes: dict[tuple[str, str], float] = {}
-        for s in g.subjects(RDF.type, BD.StereoAttribute):
-            self.attributes[(str(g.value(s, RDFS.label)), str(g.value(s, BD.category)))] = float(g.value(s, BD.logOdds))
+        if attributes is None:
+            for s in g.subjects(RDF.type, BD.StereoAttribute):
+                self.attributes[(str(g.value(s, RDFS.label)), str(g.value(s, BD.category)))] = float(g.value(s, BD.logOdds))
+        else:
+            self.attributes = _attributes_index(attributes)
 
     def source_label(self, sid: str) -> str:
         return SOURCES.get(sid, (sid,))[0]
@@ -69,8 +85,16 @@ class SymbolicFeaturizer:
         + [f"attr_max_{c}" for c in CATS] + [f"attr_min_{c}" for c in CATS] + ["attr_sum"]
     )
 
-    def __init__(self, ontology: Ontology | None = None, seed: int = 13):
-        self.ont = ontology or Ontology(seed)
+    def __init__(self, ontology: Ontology | None = None, seed: int = 13,
+                 attributes: pd.DataFrame | None = None):
+        if ontology is None:
+            self.ont = Ontology(seed, attributes=attributes)
+        elif attributes is None:
+            self.ont = ontology
+        else:
+            self.ont = copy.copy(ontology)
+            self.ont.attributes = _attributes_index(attributes)
+        self.seed = seed
 
     def _ngrams(self, toks):
         for n in range(self.ont.max_ngram, 0, -1):
@@ -130,3 +154,15 @@ class SymbolicFeaturizer:
 
     def transform(self, texts) -> np.ndarray:
         return np.array([[self.analyze(t).features[k] for k in self.FEATURE_NAMES] for t in texts], dtype=float)
+
+    def transform_crossfit(self, train_df: pd.DataFrame, n_splits: int = 5) -> np.ndarray:
+        """S4 attributes of each row are estimated on the other GroupKFold folds."""
+        X = np.zeros((len(train_df), len(self.FEATURE_NAMES)), dtype=float)
+        if len(train_df) == 0:
+            return X
+        for train_idx, test_idx in GroupKFold(n_splits=n_splits).split(
+                train_df, train_df.label, train_df.group_id):
+            attrs = stereo_attributes_from(train_df.iloc[train_idx])
+            fold = SymbolicFeaturizer(ontology=self.ont, seed=self.seed, attributes=attrs)
+            X[test_idx] = fold.transform(train_df.iloc[test_idx].text)
+        return X

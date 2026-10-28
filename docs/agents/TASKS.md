@@ -120,7 +120,7 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Action** : retirer les lignes résiduelles note1 et note2 de .gitignore ; arrêter de suivre les deux liens symboliques (git rm --cached, sans supprimer les fichiers sur le disque) et les ajouter à .gitignore. Ne rien modifier d'autre.
   - **Critère de réussite vérifiable** : git ls-files -s | grep ^120000 ne renvoie rien, grep -c "note1\|note2" .gitignore vaut 0, et les liens existent toujours sur le disque (ls -l .agents/skills/).
 
-- [ ] **Tâche 16 : Corriger la fuite en échantillon de S4 (anomalie P2)**
+- [x] **Tâche 16 : Corriger la fuite en échantillon de S4 (anomalie P2)**
   - **Contexte** : `build.stereo_attributes` calcule les log-odds S4 sur les étiquettes de StereoSet `train`. `SymbolicLR.fit` et `HybridFusion.fit` s'entraînent ensuite sur ces mêmes lignes : leurs caractéristiques `attr_*` sont donc calculées avec leurs propres étiquettes (trop informatives sur `train`, nulles ailleurs). Le modèle surpondère S4. Correctif : cross-fitting par groupes.
   - **Fichiers** : `biasdetect/ontology/build.py`, `biasdetect/features/symbolic.py`, `biasdetect/models/systems.py`, `tests/test_s4_crossfit.py` (nouveau)
   - **Action** :
