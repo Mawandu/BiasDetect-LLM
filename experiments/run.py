@@ -47,7 +47,7 @@ def eval_sets(seed: int, llm_limit: int | None, is_llm: bool):
     return ss[ss.split == "train"], ss[ss.split == "dev"], sets
 
 
-def run_system(sysobj, seed, llm_limit=None):
+def run_system(sysobj, seed, llm_limit=None, no_cache=False):
     is_llm = sysobj.name.startswith("B5")
     train, dev, sets = eval_sets(seed, llm_limit, is_llm)
     sysobj.seed = seed
@@ -58,16 +58,22 @@ def run_system(sysobj, seed, llm_limit=None):
     rows = []
     for name, df in sets.items():
         path = PRED / f"{sysobj.name}__{name}__s{seed}.csv"
-        if path.exists():
-            s = pd.read_csv(path).score.values
+        cached = pd.read_csv(path) if path.exists() and not no_cache else None
+        if cached is not None and (len(cached) != len(df) or len(cached) == 0
+                                   or not {"score", "threshold"} <= set(cached.columns)):
+            cached = None  # stale or incomplete cache: recompute
+        if cached is not None:
+            s = cached.score.values
+            thr_used = float(cached.threshold.iloc[0])
         else:
             s = sysobj.score(df)
+            thr_used = thr
             PRED.mkdir(parents=True, exist_ok=True)
-            df.assign(score=s, threshold=thr).to_csv(path, index=False)
-        m = metrics(df.label.values, s, thr)
+            df.assign(score=s, threshold=thr_used).to_csv(path, index=False)
+        m = metrics(df.label.values, s, thr_used)
         if "pair_id" in df and df.pair_id.notna().all():
             m["pair_acc"] = pairwise_accuracy(df.assign(group_id=df.pair_id), s)
-        rows.append({"system": sysobj.name, "dataset": name, "seed": seed, "threshold": thr, **m})
+        rows.append({"system": sysobj.name, "dataset": name, "seed": seed, "threshold": thr_used, **m})
     print(f"  {sysobj.name:<32} {time.time() - t0:6.1f}s")
     if isinstance(sysobj, S.HybridFusion):
         (ROOT / "results").mkdir(exist_ok=True)
@@ -83,6 +89,7 @@ def main():
     ap.add_argument("--llm-limit", type=int, default=400, help="max texts per dataset for the LLM judge")
     ap.add_argument("--finetuned", nargs="*", default=[], help="B4 model keys trained with train_transformer.py")
     ap.add_argument("--only", nargs="*", default=None)
+    ap.add_argument("--no-cache", action="store_true", help="recompute predictions even if cached files exist")
     args = ap.parse_args()
 
     all_rows = []
@@ -94,7 +101,7 @@ def main():
             systems = [s for s in systems if s.name in args.only]
         for sysobj in systems:
             try:
-                all_rows += run_system(sysobj, seed, args.llm_limit)
+                all_rows += run_system(sysobj, seed, args.llm_limit, no_cache=args.no_cache)
             except Exception as e:
                 print(f"  !! {sysobj.name} failed: {type(e).__name__}: {e}")
     res = pd.DataFrame(all_rows)
