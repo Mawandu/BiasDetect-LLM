@@ -119,3 +119,45 @@ Rappel (`AGENTS.md`) : `data/` et `results/` sont en lecture seule ; aucun appel
   - **Fichiers** : .gitignore, .agents/skills/developing-with-streamlit, .claude/skills/developing-with-streamlit
   - **Action** : retirer les lignes résiduelles note1 et note2 de .gitignore ; arrêter de suivre les deux liens symboliques (git rm --cached, sans supprimer les fichiers sur le disque) et les ajouter à .gitignore. Ne rien modifier d'autre.
   - **Critère de réussite vérifiable** : git ls-files -s | grep ^120000 ne renvoie rien, grep -c "note1\|note2" .gitignore vaut 0, et les liens existent toujours sur le disque (ls -l .agents/skills/).
+
+- [ ] **Tâche 16 : Corriger la fuite en échantillon de S4 (anomalie P2)**
+  - **Contexte** : `build.stereo_attributes` calcule les log-odds S4 sur les étiquettes de StereoSet `train`. `SymbolicLR.fit` et `HybridFusion.fit` s'entraînent ensuite sur ces mêmes lignes : leurs caractéristiques `attr_*` sont donc calculées avec leurs propres étiquettes (trop informatives sur `train`, nulles ailleurs). Le modèle surpondère S4. Correctif : cross-fitting par groupes.
+  - **Fichiers** : `biasdetect/ontology/build.py`, `biasdetect/features/symbolic.py`, `biasdetect/models/systems.py`, `tests/test_s4_crossfit.py` (nouveau)
+  - **Action** :
+    1. `build.py` : extraire `stereo_attributes_from(df, min_count=3, alpha=1.0)` (même formule, sur un DataFrame `text,label,category`). `stereo_attributes(seed)` l'appelle avec le train StereoSet ; résultat identique à avant (test de non-régression sur les valeurs).
+    2. `symbolic.py` : `Ontology(seed, attributes=None)` et `SymbolicFeaturizer(ontology=None, seed=13, attributes=None)`. Si `attributes` est fourni, il remplace les `StereoAttribute` du .ttl (même seuil |log_odds| >= 0.5). Le .ttl généré ne change pas.
+    3. `SymbolicFeaturizer.transform_crossfit(train_df, n_splits=5)` : `GroupKFold` sur `group_id` ; pour chaque pli, attributs calculés sur les autres plis, caractéristiques du pli calculées avec ces attributs ; les caractéristiques S1-S3 sont inchangées ; la matrice est rendue dans l'ordre d'origine. `transform()` reste inchangé (attributs complets du train).
+    4. `SymbolicLR.fit` et `HybridFusion.fit` : `X_train` via `transform_crossfit(train)` ; `score()` inchangé (attributs complets).
+    5. Tests : (a) non-régression : `stereo_attributes(13)` identique avant/après (comparer à une valeur figée) ; (b) fuite : jeu synthétique où `label` est du bruit pur et les mots sont aléatoires ; AUROC des features `attr_sum` sur le train : en échantillon > 0.65, en cross-fitting entre 0.45 et 0.55 ; (c) `transform_crossfit` rend un tableau de la même forme que `transform`, sans NaN, et sans aucun `group_id` commun entre le pli d'estimation et le pli transformé.
+    6. L'agent n'écrit ni ne supprime rien dans `results/` ni `data/` (règle AGENTS.md). Après validation, c'est l'HUMAIN qui supprime `results/preds/P_sym__*` et `results/preds/P_fusion_*` (cache P6) puis lance `python -m experiments.run --only P_sym P_fusion_minilm --seeds 13`.
+  - **Critère de réussite vérifiable** : `python -m pytest -q` passe (les 61 tests existants restent verts) ; vérification humaine (sabotage) : remplacer `transform_crossfit(train)` par `transform(train)` dans `SymbolicLR.fit` ; le test 5b doit échouer ; restaurer. Ne pas toucher aux seeds, au .ttl, ni à `build()`.
+
+- [ ] **Tâche 22 : Plan d'analyse sur BiasDetect-Corpus (à committer AVANT tout résultat)**
+  - **Fichiers** : `docs/analysis_plan.md` (nouveau, committé seul, avant la tâche 23)
+  - **Action** : créer `docs/analysis_plan.md` (date, hash du commit qui contient `corpus/` = 434b433, et contenu de `corpus/SHA256SUMS`) qui fixe, sans résultats :
+    1. Jeu de test : `corpus/biasdetect_corpus.csv`, gold principal = `gold_raw`, sensibilité = `gold_reviewed`.
+    2. Sous-ensembles : tout ; Core (`is_core`) = analyse principale ; OTHER = exploratoire ; hors refus (`refusal` = False).
+    3. Systèmes : Majority, LegacyRules, LegacyGenderSim, P_sym, P_neu_*, P_fusion_* (registre rapide). LLMJudge et ZeroShotNLI exclus (coût).
+    4. Entraînement StereoSet train ; seuil choisi sur StereoSet dev (jamais sur le corpus) ; 5 seeds : 13 21 42 7 99.
+    5. Deux modes de score, fixés d'avance : `full` (texte entier) et `sentmean` (moyenne des scores par phrase, découpage par regex). Aucun choix entre les deux d'après les résultats sur le corpus : on rapporte les deux.
+    6. Métriques : AUROC (principale, indépendante du seuil), macro-F1 au seuil dev, ECE (information).
+    7. Incertitude : bootstrap en grappes sur `prompt_id` (24 prompts, 2000 rééchantillonnages), moyenne des métriques sur les seeds à l'intérieur de chaque rééchantillon ; différences appariées (P_fusion - P_sym, P_fusion - P_neu) avec le même rééchantillon. McNemar en complément (informatif : ignore les grappes).
+    8. Hypothèse annoncée : l'hybride n'est PAS supposé meilleur ; tout résultat sera rapporté.
+  - **Critère de réussite vérifiable** : le fichier existe, ne contient aucun résultat chiffré sur le corpus, et son commit précède celui de `experiments/eval_corpus.py`.
+
+- [ ] **Tâche 23 : Script d'évaluation sur le corpus (dépend de 16 et 22)**
+  - **Fichiers** : `experiments/eval_corpus.py` (nouveau), `tests/test_eval_corpus.py` (nouveau)
+  - **Action** :
+    1. Charger `corpus/biasdetect_corpus.csv` ; pour chaque seed, `S.registry()` ; `sysobj.seed = seed` ; `fit(train, dev)` comme dans `experiments/run.py` (réutiliser `eval_sets` et `best_threshold`) ; scorer `text` en modes `full` et `sentmean`.
+
+    2. Ne PAS utiliser le cache `results/preds` (cache P6) ; écrire les scores dans `results/corpus_preds/{system}__{mode}__s{seed}.csv` pour audit.
+    3. Calculer métriques, intervalles et différences appariées selon `docs/analysis_plan.md` ; écrire `results/corpus_metrics.csv` et `results/corpus_paired.csv`.
+    4. Tests sur données synthétiques : (a) une métrique connue (AUROC d'un score parfait = 1) ; (b) le bootstrap en grappes ne sépare jamais les textes d'un même `prompt_id` ; (c) une erreur claire si `SHA256SUMS` du corpus ne correspond pas.
+    5. Journaliser : date, versions, seeds, hash du corpus, hash du commit.
+    6. L'agent écrit le script et ses tests sur données synthétiques seulement. L'HUMAIN lance le script sur le vrai corpus (il écrit dans `results/`, ce que `AGENTS.md` interdit aux agents).
+  - **Critère de réussite vérifiable** : les tests passent ; vérification humaine : mélanger les étiquettes (`gold_raw` permuté) ; l'AUROC de tous les systèmes doit tomber vers 0.5.
+
+- [ ] **Tâche 24 : Aligner la démo Streamlit avec le système évalué (après 23)**
+  - **Fichiers** : `main.py`, `modules/`, `README.md`, `requirements.txt`
+  - **Action** : `main.py` utilise l'ancien dossier `modules/` (alpha fixe 0.6). Le remplacer par `biasdetect.models.systems.HybridFusion` (entraîné une fois, sérialisé) et sa méthode `explain()` ; supprimer ou archiver `modules/` ; mettre à jour README et `requirements.txt`.
+  - **Critère de réussite vérifiable** : la démo démarre et affiche les contributions par caractéristique d'un texte d'exemple ; aucun import de `modules/` ne reste.
