@@ -18,3 +18,4 @@ venv/
 .venv/
 /data/
 /results/
+.vscode/
