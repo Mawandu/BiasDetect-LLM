@@ -71,3 +71,12 @@ Les analyses principales sont répétées avec : (a) `gold_reviewed` ; (b) un go
 - ECE : rapporté seulement si tous les scores du sous-ensemble sont dans [0, 1], sinon « n/a ».
 - Contrôle de cohérence : exécution avec étiquettes permutées (--permute-gold), AUROC attendu ~ 0,5.
 Résultats produits au commit 0a8a492 (renommé ecd5d93 par amend de message, arbre identique)
+
+## 13. Analyses exploratoires (post hoc, rédigées le 2026-10-29 APRÈS avoir vu les résultats principaux)
+Les résultats principaux (AUROC Core, gold_raw) sont inférieurs à 0,5 pour la plupart des systèmes.
+Les analyses suivantes cherchent à comprendre ce résultat ; elles ne remplacent pas l'analyse principale
+et sont rapportées comme exploratoires.
+- E1 : décomposition entre prompts / à l'intérieur d'un prompt. AUROC moyen intra-prompt (prompts
+  Core hors refus ayant les deux classes) et corrélation de Spearman entre le score moyen d'un prompt
+  et son taux de textes étiquetés 1. Scores moyennés sur les 5 seeds.
+- Aucune étiquette n'est modifiée, aucun seuil n'est réglé sur le corpus.
