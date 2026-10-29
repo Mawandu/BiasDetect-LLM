@@ -59,3 +59,14 @@ Les analyses principales sont répétées avec : (a) `gold_reviewed` ; (b) un go
 - Graine du bootstrap fixée à 13. Un rééchantillon ne contenant qu'une seule classe est écarté et compté dans le rapport.
 - Le seuil de macro-F1 est celui choisi sur StereoSet dev pour chaque seed.
 - Tout écart à ce plan sera signalé dans la section « Écarts au plan » de l'article.
+
+## 12. Précisions de mise en œuvre (rédigées le 2026-10-29, avant tout résultat)
+- Bootstrap en grappes : les prompts sont rééchantillonnés à l'intérieur du sous-ensemble évalué
+  (tout = 24 prompts ; Core = 17), grappes complètes, avec le même tirage pour tous les systèmes,
+  modes et golds d'un sous-ensemble. Un rééchantillon à une seule classe est rejeté et compté
+  (colonne n_boot_rejected). Les métriques sont moyennées sur les 5 seeds à l'intérieur de
+  chaque rééchantillon.
+- p bootstrap bilatérale = min(1, 2 (min(k+, k-) + 1) / (B + 1)) ; correction de Holm sur les
+  4 comparaisons principales (2 paires × 2 modes). McNemar : informatif, par seed.
+- ECE : rapporté seulement si tous les scores du sous-ensemble sont dans [0, 1], sinon « n/a ».
+- Contrôle de cohérence : exécution avec étiquettes permutées (--permute-gold), AUROC attendu ~ 0,5.
