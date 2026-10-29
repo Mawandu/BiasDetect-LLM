@@ -84,3 +84,9 @@ et sont rapportées comme exploratoires.
   par modèle générateur : effectif, taux d'étiquette 1, longueur moyenne, score moyen de B1, P_sym,
   P_neu_minilm et P_fusion_minilm (mode full, scores moyennés sur les seeds) ; corrélation de Spearman
   entre score et longueur. Aucun test d'hypothèse.
+- E3 (ajouté le 2026-10-29, avant exécution) : AUROC par catégorie de prompt (GENDER, ORIGIN, RELIGION),
+  Core hors refus, gold_raw, par système et mode ; moyenne des AUROC sur les 5 seeds ; IC par bootstrap
+  en grappes sur les prompts de la catégorie (2000 rééchantillons, seed 13, mêmes tirages pour tous les
+  systèmes). Hypothèse formulée avant le test, non confirmée : les détecteurs ont un a priori par
+  catégorie (scores plus élevés pour GENDER que pour ORIGIN/RELIGION) indépendant du label, ce qui
+  explique l'AUROC global < 0,5. Peu de prompts par catégorie (5 à 6) : intervalles larges, analyse descriptive.
