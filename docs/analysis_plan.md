@@ -90,3 +90,16 @@ et sont rapportées comme exploratoires.
   systèmes). Hypothèse formulée avant le test, non confirmée : les détecteurs ont un a priori par
   catégorie (scores plus élevés pour GENDER que pour ORIGIN/RELIGION) indépendant du label, ce qui
   explique l'AUROC global < 0,5. Peu de prompts par catégorie (5 à 6) : intervalles larges, analyse descriptive.
+
+## 14. Analyse secondaire sur les benchmarks (rédigée le 2026-10-29, avant exécution)
+Cette analyse n'était pas dans le plan initial ; elle est secondaire et descriptive.
+- Jeux : StereoSet test, CrowS-Pairs, SBIC ; systèmes P_sym, P_neu_minilm, P_fusion_minilm (5 seeds) ;
+  B0, B1, B2 en point estimate (seed 13).
+- Métriques : AUROC (principale), macro-F1 au seuil enregistré, précision par paires (StereoSet, CrowS-Pairs).
+- Incertitude : bootstrap en grappes sur group_id (2000 rééchantillons, seed 13), mêmes tirages pour tous les
+  systèmes d'un jeu et d'une seed. CrowS-Pairs et SBIC : items identiques d'une seed à l'autre, donc tirage
+  commun aux seeds et moyenne des seeds à l'intérieur de chaque rééchantillon. StereoSet : le test dépend de
+  la seed, donc IC par seed, puis moyenne et écart-type entre seeds (approximation indiquée dans le fichier INFO).
+- Comparaisons : P_fusion - P_neu et P_fusion - P_sym, AUROC, par jeu (6 comparaisons) ; p bootstrap
+  (k+1)/(B+1), Holm sur ces 6 ; précision par paires : descriptive.
+- Aucun seuil ni hyperparamètre n'est modifié ; tout résultat est rapporté.
