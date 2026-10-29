@@ -70,3 +70,4 @@ Les analyses principales sont répétées avec : (a) `gold_reviewed` ; (b) un go
   4 comparaisons principales (2 paires × 2 modes). McNemar : informatif, par seed.
 - ECE : rapporté seulement si tous les scores du sous-ensemble sont dans [0, 1], sinon « n/a ».
 - Contrôle de cohérence : exécution avec étiquettes permutées (--permute-gold), AUROC attendu ~ 0,5.
+Résultats produits au commit 0a8a492 (renommé ecd5d93 par amend de message, arbre identique)
