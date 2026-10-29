@@ -80,3 +80,7 @@ et sont rapportées comme exploratoires.
   Core hors refus ayant les deux classes) et corrélation de Spearman entre le score moyen d'un prompt
   et son taux de textes étiquetés 1. Scores moyennés sur les 5 seeds.
 - Aucune étiquette n'est modifiée, aucun seuil n'est réglé sur le corpus.
+- E2 (ajouté le 2026-10-29, avant exécution) : tableaux descriptifs par prompt et, si la colonne existe,
+  par modèle générateur : effectif, taux d'étiquette 1, longueur moyenne, score moyen de B1, P_sym,
+  P_neu_minilm et P_fusion_minilm (mode full, scores moyennés sur les seeds) ; corrélation de Spearman
+  entre score et longueur. Aucun test d'hypothèse.
