@@ -103,3 +103,8 @@ Cette analyse n'était pas dans le plan initial ; elle est secondaire et descrip
 - Comparaisons : P_fusion - P_neu et P_fusion - P_sym, AUROC, par jeu (6 comparaisons) ; p bootstrap
   (k+1)/(B+1), Holm sur ces 6 ; précision par paires : descriptive.
 - Aucun seuil ni hyperparamètre n'est modifié ; tout résultat est rapporté.
+- Précision §14 (ajoutée le 2026-10-29, avant l'exécution officielle, remplace la phrase sur le tirage de StereoSet) :
+  pour tous les jeux, à chaque rééchantillon on tire une seule fois les group_id dans l'union des group_id de toutes
+  les seeds ; ce tirage est appliqué à chaque seed (un group_id absent du test d'une seed est ignoré). Cela conserve la
+  dépendance entre seeds, y compris pour StereoSet dont le test varie avec la seed. La précision par paires est
+  calculée avec la multiplicité des groupes tirés (poids = nombre d'occurrences).
