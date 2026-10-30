@@ -19,3 +19,9 @@ venv/
 /data/
 /results/
 .vscode/
+
+# secrets
+*.env
+!*.env.example
+!api_keys.env.example
+__pycache__/
