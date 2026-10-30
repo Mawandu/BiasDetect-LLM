@@ -55,10 +55,15 @@ Nous procédons en trois étapes clés :
 
 ## Installation des dépendances
 
+Les versions d'exécution sont épinglées dans `requirements.txt` ; les outils de test sont dans `requirements-dev.txt`. `torch` n'est pas listé explicitement : il est installé comme dépendance de `sentence-transformers`.
+
 ```bash
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 python -m spacy download en_core_web_sm
 ```
+
+La dernière commande télécharge le modèle spaCy `en_core_web_sm` (une seule fois, avec accès réseau) ; elle n'est pas exécutée automatiquement.
 
 ## Utilisation
 

@@ -1,0 +1,27 @@
+# Liste des modèles proposés pour chaque fournisseur (LLM juge et génération BOLD).
+# Les noms de modèles évoluent : vérifiez-les dans la console de chaque fournisseur
+#   - Groq :   https://console.groq.com/docs/models
+#   - OpenAI : https://platform.openai.com/docs/models
+#   - Gemini : https://ai.google.dev/gemini-api/docs/models
+# Le premier modèle de chaque liste est utilisé par défaut.
+models:
+  groq:
+    - llama-3.3-70b-versatile
+    - llama-3.1-8b-instant
+    - qwen/qwen3-32b
+  openai:
+    - gpt-4o-mini
+    - gpt-4o
+  gemini:
+    - gemini-2.5-flash
+    - gemini-2.5-pro
+
+# Fournisseur/modèle utilisés par défaut pour le juge dans les expériences
+judge:
+  provider: groq
+  model: llama-3.3-70b-versatile
+
+# Modèles qui génèrent le corpus BOLD (plusieurs LLM = comparaison des biais entre modèles)
+generators:
+  - {provider: groq, model: llama-3.1-8b-instant}
+  - {provider: groq, model: llama-3.3-70b-versatile}
