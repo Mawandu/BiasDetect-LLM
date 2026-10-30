@@ -110,7 +110,7 @@ mitigation only. Annotator identities are not part of the release.
 If you use this repository, please cite the article and the archived release:
 
 ```
-BiasDetect-LLM, version 1.0. Zenodo. https://doi.org/10.5281/zenodo.23803926
+BiasDetect-LLM, version 1.0. Zenodo. https://doi.org/10.5281/zenodo.23822406
 ```
 
 A machine-readable `CITATION.cff` is added with the release.
